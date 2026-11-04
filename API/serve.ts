@@ -7,6 +7,7 @@ import { JWT_SECRET } from './config/jwt.js';
 import './models/index.js';
 import UsersRoutes from './routes/users.js';
 import LoginRoutes from './routes/login.js';
+import ProjectsRoutes from './routes/projects.js';
 
 export const app = Fastify({ logger: true });
 const port = 3001;
@@ -27,6 +28,7 @@ await app.register(jwt, { secret: JWT_SECRET });
 
 await app.register(LoginRoutes, { prefix: '/login' });
 await app.register(UsersRoutes, { prefix: '/users' });
+await app.register(ProjectsRoutes, { prefix: '/projects' });
 
 await db.authenticate();
 

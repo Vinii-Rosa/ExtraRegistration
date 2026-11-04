@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import jwt from '@fastify/jwt';
 import Users from '../models/users.js';
 import { hashPassword } from './hash.js';
+import ProjectsController from '../controllers/projects/index.js';
 
 const jwtApp = Fastify();
 await jwtApp.register(jwt, { secret: 'test-secret' });
@@ -11,6 +12,13 @@ export const defaultUserData = {
   id: 'user-test-0001',
   name: 'Usuário Teste',
   email: 'usuario@teste.com',
+  password: '123456',
+};
+
+export const otherUserData = {
+  id: 'user-test-0002',
+  name: 'Outro Usuário',
+  email: 'outro@teste.com',
   password: '123456',
 };
 
@@ -25,6 +33,17 @@ export const ensureDefaultData = async () => {
     },
   });
   return { user };
+};
+
+export const ensureOtherData = async () => {
+  const [user] = await Users.findOrCreate({
+    where: { id: otherUserData.id },
+    defaults: {
+      ...otherUserData,
+      password: await hashPassword(otherUserData.password),
+    },
+  });
+  return { user, loggedUser: { user_id: user.id, email: user.email } };
 };
 
 export const mockReply = () => {
@@ -78,4 +97,19 @@ export const callAssertError = async (fn: (req: any, res: any) => Promise<any>, 
   const body = res.send.mock.calls[0]?.[0];
   if (message) expect(body.message).toBe(message);
   return body;
+};
+
+export const createProject = async (project_name: string, hourly_value = 60, reqOverrides: Record<string, any> = {}) => {
+  await callAssertSuccess(ProjectsController.createProject, {
+    ...defaultReq,
+    ...reqOverrides,
+    body: { project_name, hourly_value },
+  }, 201);
+
+  const { projects } = await callAssertSuccess(ProjectsController.getProjects, {
+    ...defaultReq,
+    ...reqOverrides,
+    query: { project_name },
+  }, 200);
+  return projects.find((project: any) => project.project_name === project_name);
 };
