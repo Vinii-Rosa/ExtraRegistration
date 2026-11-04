@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import db from '../db.js';
+import type { ModelWithAssociate, Models } from './types.js';
 
 const projects = db.define('projects', {
   id: {
@@ -29,6 +30,17 @@ const projects = db.define('projects', {
     allowNull: false,
     defaultValue: 0,
   },
-});
+}) as ModelWithAssociate;
+
+projects.associate = function (models: Models) {
+  projects.user = projects.belongsTo(models.users, {
+    foreignKey: 'user_id',
+    as: 'user',
+  });
+  projects.extra_hours = projects.hasMany(models.extra_hours, {
+    foreignKey: 'project_id',
+    as: 'extra_hours',
+  });
+};
 
 export default projects;

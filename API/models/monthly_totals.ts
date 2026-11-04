@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import db from '../db.js';
+import type { ModelWithAssociate, Models } from './types.js';
 
 const monthly_totals = db.define('monthly_totals', {
   id: {
@@ -25,6 +26,13 @@ const monthly_totals = db.define('monthly_totals', {
     allowNull: false,
     defaultValue: 0,
   },
-});
+}) as ModelWithAssociate;
+
+monthly_totals.associate = function (models: Models) {
+  monthly_totals.user = monthly_totals.belongsTo(models.users, {
+    foreignKey: 'user_id',
+    as: 'user',
+  });
+};
 
 export default monthly_totals;

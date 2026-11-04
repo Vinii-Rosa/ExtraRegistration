@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import db from '../db.js';
+import type { ModelWithAssociate, Models } from './types.js';
 
 const extra_hours = db.define('extra_hours', {
   id: {
@@ -48,6 +49,17 @@ const extra_hours = db.define('extra_hours', {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
-});
+}) as ModelWithAssociate;
+
+extra_hours.associate = function (models: Models) {
+  extra_hours.user = extra_hours.belongsTo(models.users, {
+    foreignKey: 'user_id',
+    as: 'user',
+  });
+  extra_hours.project = extra_hours.belongsTo(models.projects, {
+    foreignKey: 'project_id',
+    as: 'project',
+  });
+};
 
 export default extra_hours;

@@ -1,6 +1,7 @@
-import type { FastifyReply } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 
 type TokenUser = { user_id: string; email: string };
+type RefreshPayload = TokenUser & { type?: 'refresh' };
 
 export const signAccessToken = (reply: FastifyReply, user: TokenUser) =>
   reply.jwtSign({ user_id: user.user_id, email: user.email }, { expiresIn: '15m' });
@@ -19,3 +20,12 @@ export const setRefreshCookie = (reply: FastifyReply, token: string) =>
 
 export const clearRefreshCookie = (reply: FastifyReply) =>
   reply.clearCookie('refresh_token', { path: '/' });
+
+export const verifyRefreshToken = (req: FastifyRequest, token: string) => {
+  try {
+    const payload = req.server.jwt.verify<RefreshPayload>(token);
+    return payload.type === 'refresh' ? payload : null;
+  } catch {
+    return null;
+  }
+};

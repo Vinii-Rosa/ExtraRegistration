@@ -5,6 +5,8 @@ import jwt from '@fastify/jwt';
 import db from './db.js';
 import { JWT_SECRET } from './config/jwt.js';
 import './models/index.js';
+import UsersRoutes from './routes/users.js';
+import LoginRoutes from './routes/login.js';
 
 export const app = Fastify({ logger: true });
 const port = 3001;
@@ -22,6 +24,9 @@ await app.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 });
 await app.register(jwt, { secret: JWT_SECRET });
+
+await app.register(LoginRoutes, { prefix: '/login' });
+await app.register(UsersRoutes, { prefix: '/users' });
 
 await db.authenticate();
 
