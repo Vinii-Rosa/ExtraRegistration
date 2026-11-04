@@ -4,14 +4,30 @@ import {
   REFRESH_COOKIE,
   accessCookieOptions,
   isFresh,
-  refreshRequest,
 } from "@/lib/tokens";
+import { ApiError } from "@/lib/api";
+import { authRoutes } from "@/lib/routes";
 
 const PUBLIC_PATHS = ["/login", "/cadastro"];
 
 function withAccess(res: NextResponse, access: string) {
   res.cookies.set(ACCESS_COOKIE, access, accessCookieOptions);
   return res;
+}
+
+type RefreshResult =
+  | { status: "ok"; access: string }
+  | { status: "invalid" }
+  | { status: "unavailable" };
+
+async function refresh(refreshToken: string): Promise<RefreshResult> {
+  try {
+    return { status: "ok", access: await authRoutes.refresh(refreshToken) };
+  } catch (error) {
+    return error instanceof ApiError && error.status === 401
+      ? { status: "invalid" }
+      : { status: "unavailable" };
+  }
 }
 
 function clearTokens(res: NextResponse) {
@@ -31,7 +47,7 @@ export async function proxy(request: NextRequest) {
   if (!authenticated) {
     const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
     if (refreshToken) {
-      const result = await refreshRequest(refreshToken);
+      const result = await refresh(refreshToken);
       if (result.status === "ok") {
         renewed = result.access;
         authenticated = true;

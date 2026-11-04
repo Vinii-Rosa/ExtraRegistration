@@ -2,9 +2,10 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { api, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { authRoutes, userRoutes } from "@/lib/routes";
 import { clearSessionCookies, setSessionCookies } from "@/lib/session";
-import { REFRESH_COOKIE, loginRequest } from "@/lib/tokens";
+import { REFRESH_COOKIE } from "@/lib/tokens";
 import type { AuthFormState } from "@/types/auth";
 
 const field = (data: FormData, key: string) =>
@@ -25,7 +26,7 @@ export async function loginAction(
   if (!password) return { error: "Informe a senha", values };
 
   try {
-    await setSessionCookies(await loginRequest(email, password));
+    await setSessionCookies(await authRoutes.login(email, password));
   } catch (error) {
     return { error: messageOf(error), values };
   }
@@ -47,16 +48,13 @@ export async function registerAction(
   if (!password) return { error: "Informe a senha", values };
 
   try {
-    await api("/users/user/create", {
-      method: "POST",
-      body: { name, email, password },
-    });
+    await userRoutes.create(name, email, password);
   } catch (error) {
     return { error: messageOf(error), values };
   }
 
   try {
-    await setSessionCookies(await loginRequest(email, password));
+    await setSessionCookies(await authRoutes.login(email, password));
   } catch {
     return {
       error: "Conta criada, mas não foi possível entrar. Faça login",
@@ -70,10 +68,7 @@ export async function registerAction(
 export async function logoutAction() {
   const refreshToken = (await cookies()).get(REFRESH_COOKIE)?.value;
   // Revoga o refresh token no banco da API; a sessão local é limpa mesmo se falhar
-  await api("/login/logout", {
-    method: "POST",
-    headers: refreshToken ? { Cookie: `${REFRESH_COOKIE}=${refreshToken}` } : {},
-  }).catch(() => null);
+  await authRoutes.logout(refreshToken).catch(() => null);
   await clearSessionCookies();
   redirect("/login");
 }

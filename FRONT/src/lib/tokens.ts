@@ -1,5 +1,3 @@
-import { api, ApiError } from "./api";
-
 export const ACCESS_COOKIE = "access_token";
 export const REFRESH_COOKIE = "refresh_token";
 
@@ -53,39 +51,4 @@ export function readRefreshCookie(headers: Headers) {
     .find((c) => c.startsWith(`${REFRESH_COOKIE}=`));
   const value = line?.slice(REFRESH_COOKIE.length + 1).split(";")[0];
   return value || null;
-}
-
-export async function loginRequest(
-  email: string,
-  password: string,
-): Promise<Tokens> {
-  const { data, headers } = await api<{ token: string }>("/login/login", {
-    method: "POST",
-    body: { email, password },
-  });
-  const refresh = readRefreshCookie(headers);
-  if (!refresh) throw new ApiError(502, "Resposta inválida do servidor");
-  return { access: data.token, refresh };
-}
-
-export type RefreshResult =
-  | { status: "ok"; access: string }
-  | { status: "invalid" }
-  | { status: "unavailable" };
-
-export async function refreshRequest(
-  refreshToken: string,
-): Promise<RefreshResult> {
-  try {
-    const { data } = await api<{ token: string }>("/login/refresh", {
-      method: "POST",
-      headers: { Cookie: `${REFRESH_COOKIE}=${refreshToken}` },
-    });
-    return { status: "ok", access: data.token };
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      return { status: "invalid" };
-    }
-    return { status: "unavailable" };
-  }
 }
