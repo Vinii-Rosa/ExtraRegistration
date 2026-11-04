@@ -12,7 +12,8 @@ import ExtraHoursRoutes from './routes/extra_hours.js';
 import MonthlyTotalsRoutes from './routes/monthly_totals.js';
 
 export const app = Fastify({ logger: true });
-const port = 3001;
+const basePort = Number(process.env.PORT) || 3001;
+const maxPortAttempts = 20;
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET não definido. Configure no arquivo .env');
@@ -36,6 +37,18 @@ await app.register(MonthlyTotalsRoutes, { prefix: '/monthly-totals' });
 
 await db.authenticate();
 
-app.listen({ port, host: '0.0.0.0' }, () => {
-  console.log(`App listening on port ${port}`);
-});
+async function listenOnFreePort() {
+  for (let port = basePort; port < basePort + maxPortAttempts; port++) {
+    try {
+      await app.listen({ port, host: '0.0.0.0' });
+      return port;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EADDRINUSE') throw error;
+      app.log.warn(`Porta ${port} em uso, tentando ${port + 1}`);
+    }
+  }
+  throw new Error(`Nenhuma porta livre entre ${basePort} e ${basePort + maxPortAttempts - 1}`);
+}
+
+const port = await listenOnFreePort();
+console.log(`App listening on port ${port}`);

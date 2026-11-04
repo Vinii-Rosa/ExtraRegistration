@@ -7,8 +7,9 @@ services:
     environment:
       DB_HOST: extra_hour_db
       DB_PORT: 3306
+      PORT: 3001
     ports:
-      - "3001:3001"
+      - "${API_PORT:-3001}:3001"
     volumes:
       - .:/app
       - extra_hour_node_modules:/app/node_modules
