@@ -15,13 +15,14 @@ export const metadata: Metadata = {
   description: "Controle de horas extras",
 };
 
-const themeScript = `document.documentElement.dataset.theme=localStorage.getItem('theme')==='dark'?'dark':'light'`;
+const themeScript = `try{var d=document.documentElement,s=localStorage;d.dataset.theme=s.getItem('theme')==='dark'?'dark':'light';d.dataset.sidebar=s.getItem('sidebar')==='closed'?'closed':'open'}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
       data-theme="light"
+      data-sidebar="open"
       suppressHydrationWarning
       className={`${inter.variable} h-full antialiased`}
     >

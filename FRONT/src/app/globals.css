@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant sb-closed (&:where([data-sidebar="closed"], [data-sidebar="closed"] *));
+
+:root {
+  --sidebar-w: 260px;
+}
+:root[data-sidebar="closed"] {
+  --sidebar-w: 64px;
+}
 
 :root,
 [data-theme="light"] {
