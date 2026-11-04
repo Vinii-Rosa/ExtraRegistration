@@ -11,7 +11,7 @@ type Migration = {
 
 const migrationsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 
-const runMigrations = async () => {
+async function runMigrations() {
   await db.query(`CREATE TABLE IF NOT EXISTS sequelize_migrations (
     name VARCHAR(255) NOT NULL PRIMARY KEY,
     executed_at DATETIME NOT NULL
@@ -38,7 +38,7 @@ const runMigrations = async () => {
       replacements: [name],
     });
   }
-};
+}
 
 try {
   await runMigrations();

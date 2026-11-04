@@ -1,0 +1,62 @@
+name: API CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['API/**', '.github/workflows/api-ci.yml']
+  pull_request:
+    paths: ['API/**', '.github/workflows/api-ci.yml']
+
+concurrency:
+  group: api-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: API
+
+jobs:
+  quality:
+    name: Qualidade (lint, tipos e build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: API/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+
+  test:
+    name: Testes
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3307
+      DB_USER: root
+      DB_PASSWORD: root
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: API/package-lock.json
+      - run: npm ci
+      - run: npm test

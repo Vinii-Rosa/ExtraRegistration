@@ -1,4 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
+import moment from 'moment';
 import { callAssertError, callAssertSuccess, createProject, defaultReq, ensureDefaultData, ensureOtherData } from '../../utils/test_helpers.js';
 import ProjectsController from '../../controllers/projects/index.js';
 import ExtraHoursController from '../../controllers/extra_hours/index.js';
@@ -156,12 +157,8 @@ describe('ProjectsController', () => {
 
   test('Filtrando projetos por data de criação', async () => {
     await createProject('Criado Hoje');
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const today = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
-    const yesterdayDate = new Date(now);
-    yesterdayDate.setDate(now.getDate() - 1);
-    const yesterday = `${pad(yesterdayDate.getDate())}/${pad(yesterdayDate.getMonth() + 1)}/${yesterdayDate.getFullYear()}`;
+    const today = moment().format('DD/MM/YYYY');
+    const yesterday = moment().subtract(1, 'day').format('DD/MM/YYYY');
 
     expect(await listProjects({ created_at: today })).toContain('Criado Hoje');
     expect(await listProjects({ created_at: yesterday })).not.toContain('Criado Hoje');

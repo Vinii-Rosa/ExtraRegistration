@@ -6,6 +6,8 @@
   "main": "dist/serve.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
     "start": "node --env-file=.env dist/serve.js",
     "start:dev": "nodemon --exec \"node --env-file=.env --import tsx\" serve.ts",
     "migrate": "node --env-file=.env --import tsx scripts/migrate.ts",
@@ -25,15 +27,18 @@
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.5.2",
     "@types/bcrypt": "^6.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.19.2",
+    "eslint": "^10.14.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.14",
     "ts-jest": "^29.4.15",
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1"
   },
   "jest": {
     "preset": "ts-jest/presets/default-esm",
