@@ -69,7 +69,7 @@ export async function loginRequest(
 }
 
 export type RefreshResult =
-  | { status: "ok"; tokens: Tokens }
+  | { status: "ok"; access: string }
   | { status: "invalid" }
   | { status: "unavailable" };
 
@@ -77,13 +77,11 @@ export async function refreshRequest(
   refreshToken: string,
 ): Promise<RefreshResult> {
   try {
-    const { data, headers } = await api<{ token: string }>("/login/refresh", {
+    const { data } = await api<{ token: string }>("/login/refresh", {
       method: "POST",
       headers: { Cookie: `${REFRESH_COOKIE}=${refreshToken}` },
     });
-    const refresh = readRefreshCookie(headers);
-    if (!refresh) return { status: "unavailable" };
-    return { status: "ok", tokens: { access: data.token, refresh } };
+    return { status: "ok", access: data.token };
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       return { status: "invalid" };

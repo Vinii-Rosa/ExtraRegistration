@@ -4,16 +4,13 @@ import {
   REFRESH_COOKIE,
   accessCookieOptions,
   isFresh,
-  refreshCookieOptions,
   refreshRequest,
-  type Tokens,
 } from "@/lib/tokens";
 
 const PUBLIC_PATHS = ["/login", "/cadastro"];
 
-function withTokens(res: NextResponse, tokens: Tokens) {
-  res.cookies.set(ACCESS_COOKIE, tokens.access, accessCookieOptions);
-  res.cookies.set(REFRESH_COOKIE, tokens.refresh, refreshCookieOptions);
+function withAccess(res: NextResponse, access: string) {
+  res.cookies.set(ACCESS_COOKIE, access, accessCookieOptions);
   return res;
 }
 
@@ -29,18 +26,17 @@ export async function proxy(request: NextRequest) {
   const isApi = pathname.startsWith("/api/");
 
   let authenticated = isFresh(request.cookies.get(ACCESS_COOKIE)?.value);
-  let renewed: Tokens | null = null;
+  let renewed: string | null = null;
 
   if (!authenticated) {
     const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
     if (refreshToken) {
       const result = await refreshRequest(refreshToken);
       if (result.status === "ok") {
-        renewed = result.tokens;
+        renewed = result.access;
         authenticated = true;
         // Os Server Components desta mesma requisição precisam já enxergar o token novo
-        request.cookies.set(ACCESS_COOKIE, renewed.access);
-        request.cookies.set(REFRESH_COOKIE, renewed.refresh);
+        request.cookies.set(ACCESS_COOKIE, renewed);
       } else if (result.status === "invalid") {
         const res = isPublic
           ? NextResponse.next()
@@ -63,7 +59,7 @@ export async function proxy(request: NextRequest) {
     response = NextResponse.next({ request });
   }
 
-  return renewed ? withTokens(response, renewed) : response;
+  return renewed ? withAccess(response, renewed) : response;
 }
 
 export const config = {
