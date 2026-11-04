@@ -1,9 +1,11 @@
+import ExcelJS from 'exceljs';
 import moment from 'moment';
 import { Op } from 'sequelize';
 import type { Transaction, WhereOptions } from 'sequelize';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import db from '../../db.js';
 import ExtraHours from '../../models/extra_hours.js';
+import MonthlyTotals from '../../models/monthly_totals.js';
 import Projects from '../../models/projects.js';
 import { calculateExtraValue } from '../../utils/calculate_extra_value.js';
 import { syncTotals } from '../../utils/sync_totals.js';
@@ -25,6 +27,7 @@ type ExtraHourQuery = {
   hour?: string;
   total_value?: string;
 };
+type ExportQuery = { month?: string };
 
 const extraHourAttributes = [
   'id', 'project_id', 'date', 'card_name', 'card_link', 'start_time', 'end_time', 'total_value',
@@ -307,6 +310,80 @@ const ExtraHoursController = {
       req.log.error({ err: error }, 'Erro ao excluir hora extra');
       await transaction?.rollback();
       return res.status(500).send({ message: 'Erro ao excluir hora extra', error: (error as Error).message });
+    }
+  },
+  exportExtraHours: async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      const { user_id } = req.user;
+      const { month } = req.query as ExportQuery;
+
+      if (!month) {
+        return res.status(400).send({ message: 'Mês não informado' });
+      }
+      const monthMoment = moment(month, 'YYYY-MM', true);
+      if (!monthMoment.isValid()) {
+        return res.status(400).send({ message: 'Mês inválido' });
+      }
+
+      const extra_hours = await ExtraHours.findAll({
+        where: {
+          user_id,
+          date: {
+            [Op.gte]: monthMoment.clone().startOf('month').format('YYYY-MM-DD'),
+            [Op.lt]: monthMoment.clone().add(1, 'month').startOf('month').format('YYYY-MM-DD'),
+          },
+        },
+        attributes: ['date', 'card_name', 'card_link', 'start_time', 'end_time', 'total_value'],
+        order: [['date', 'ASC'], ['start_time', 'ASC']],
+      });
+
+      if (extra_hours.length === 0) {
+        return res.status(404).send({ message: 'Nenhuma hora extra encontrada no mês' });
+      }
+
+      const monthly_total = await MonthlyTotals.findOne({
+        where: { user_id, month },
+        attributes: ['total'],
+      });
+
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Horas extras');
+      sheet.columns = [
+        { header: 'Data', key: 'date', width: 14, style: { numFmt: 'DD/MM/YYYY' } },
+        { header: 'Nome do card', key: 'card_name', width: 30 },
+        { header: 'Link do card', key: 'card_link', width: 40, style: { alignment: { horizontal: 'fill' } } },
+        { header: 'Hora de início', key: 'start_time', width: 16 },
+        { header: 'Hora de fim', key: 'end_time', width: 16 },
+        { header: 'Valor', key: 'total_value', width: 14, style: { numFmt: '"R$" #,##0' } },
+      ];
+      sheet.getRow(1).font = { bold: true };
+
+      for (const extra_hour of extra_hours) {
+        const card_link = extra_hour.get('card_link') as string | null;
+        const end_time = extra_hour.get('end_time') as string | null;
+        sheet.addRow({
+          date: moment.utc(extra_hour.get('date') as string, 'YYYY-MM-DD').toDate(),
+          card_name: extra_hour.get('card_name') as string | null,
+          card_link: card_link ? { text: card_link, hyperlink: card_link } : null,
+          start_time: toTime(extra_hour.get('start_time') as string),
+          end_time: end_time ? toTime(end_time) : null,
+          total_value: extra_hour.get('total_value') as number | null,
+        });
+      }
+
+      const totalRow = sheet.addRow({ date: 'Total do mês', total_value: monthly_total ? (monthly_total.get('total') as number) : 0 });
+      totalRow.font = { bold: true };
+
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      return res
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="extras-${month}.xlsx"`)
+        .status(200)
+        .send(Buffer.from(buffer));
+    } catch (error) {
+      req.log.error({ err: error }, 'Erro ao exportar horas extras');
+      return res.status(500).send({ message: 'Erro ao exportar horas extras', error: (error as Error).message });
     }
   },
 };

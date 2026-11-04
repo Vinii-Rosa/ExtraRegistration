@@ -50,6 +50,7 @@ export function mockReply() {
   const reply: any = {
     status: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
+    header: jest.fn().mockReturnThis(),
     jwtSign: jest.fn(async (payload: any, options: any) => jwtApp.jwt.sign(payload, options)),
     setCookie: jest.fn().mockReturnThis(),
     clearCookie: jest.fn().mockReturnThis(),
