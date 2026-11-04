@@ -1,0 +1,17 @@
+import type { Metadata } from "next";
+import { AuthCard } from "@/components/auth/auth-card";
+import { LoginForm } from "@/components/auth/login-form";
+
+export const metadata: Metadata = { title: "Entrar | Extra Hour" };
+
+export default function LoginPage() {
+  return (
+    <AuthCard
+      title="Entrar"
+      description="Acesse suas horas extras"
+      footer={{ text: "Não tem conta?", href: "/cadastro", link: "Criar conta" }}
+    >
+      <LoginForm />
+    </AuthCard>
+  );
+}
