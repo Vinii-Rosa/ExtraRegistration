@@ -4,6 +4,7 @@ import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
 import db from './db.js';
 import { JWT_SECRET } from './config/jwt.js';
+import './models/index.js';
 
 export const app = Fastify({ logger: true });
 const port = 3001;
