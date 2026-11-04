@@ -9,6 +9,7 @@ import UsersRoutes from './routes/users.js';
 import LoginRoutes from './routes/login.js';
 import ProjectsRoutes from './routes/projects.js';
 import ExtraHoursRoutes from './routes/extra_hours.js';
+import MonthlyTotalsRoutes from './routes/monthly_totals.js';
 
 export const app = Fastify({ logger: true });
 const port = 3001;
@@ -31,6 +32,7 @@ await app.register(LoginRoutes, { prefix: '/login' });
 await app.register(UsersRoutes, { prefix: '/users' });
 await app.register(ProjectsRoutes, { prefix: '/projects' });
 await app.register(ExtraHoursRoutes, { prefix: '/extra-hours' });
+await app.register(MonthlyTotalsRoutes, { prefix: '/monthly-totals' });
 
 await db.authenticate();
 
