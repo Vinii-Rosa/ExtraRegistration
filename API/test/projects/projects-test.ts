@@ -1,7 +1,9 @@
 import { describe, expect, test } from '@jest/globals';
 import { callAssertError, callAssertSuccess, createProject, defaultReq, ensureDefaultData, ensureOtherData } from '../../utils/test_helpers.js';
 import ProjectsController from '../../controllers/projects/index.js';
+import ExtraHoursController from '../../controllers/extra_hours/index.js';
 import ExtraHours from '../../models/extra_hours.js';
+import MonthlyTotals from '../../models/monthly_totals.js';
 
 async function getProject(project_id: string) {
   const body = await callAssertSuccess(ProjectsController.getProject, {
@@ -19,6 +21,47 @@ async function listProjects(query: Record<string, any> = {}) {
 async function createOtherProject(project_name: string) {
   const { loggedUser } = await ensureOtherData();
   return createProject(project_name, 50, { user: loggedUser });
+}
+
+async function createExtra(project_id: string, date: string, start_time: string, end_time?: string) {
+  await callAssertSuccess(ExtraHoursController.createExtraHour, {
+    ...defaultReq,
+    body: { project_id, date, start_time, end_time },
+  }, 201);
+  const { extra_hours } = await callAssertSuccess(ExtraHoursController.getExtraHours, {
+    ...defaultReq,
+    query: { date, limit: '100' },
+  }, 200);
+  return extra_hours.find((item: any) => item.project_id === project_id && item.start_time.startsWith(start_time));
+}
+
+async function getExtra(extra_hour_id: string) {
+  const body = await callAssertSuccess(ExtraHoursController.getExtraHour, {
+    ...defaultReq,
+    params: { extra_hour_id },
+  }, 200);
+  return body.extra_hour;
+}
+
+async function recalculate(project_id: string, body: Record<string, any>) {
+  return callAssertSuccess(ProjectsController.recalculateExtraHours, {
+    ...defaultReq,
+    params: { project_id },
+    body,
+  }, 200);
+}
+
+async function changeHourlyValue(project_id: string, hourly_value: number) {
+  await callAssertSuccess(ProjectsController.updateProject, {
+    ...defaultReq,
+    params: { project_id },
+    body: { hourly_value },
+  }, 200);
+}
+
+async function monthTotal(month: string) {
+  const row = await MonthlyTotals.findOne({ where: { user_id: 'user-test-0001', month }, raw: true }) as any;
+  return row ? row.total : null;
 }
 
 describe('ProjectsController', () => {
@@ -319,5 +362,122 @@ describe('ProjectsController', () => {
       params: { project_id: alheio.id },
     }, 200);
     expect(body.project.project_name).toBe('Alheio Delete');
+  });
+
+  test('Recalculando extras selecionados com o valor por hora atual', async () => {
+    const project = await createProject('Recalc Selecionados', 60);
+    const um = await createExtra(project.id, '03/12/2026', '18:00', '20:00');
+    const dois = await createExtra(project.id, '04/12/2026', '18:00', '20:00');
+    await changeHourlyValue(project.id, 80);
+
+    const body = await recalculate(project.id, { scope: 'selected', extra_hour_ids: [um.id] });
+    expect(body.message).toBe('Horas extras recalculadas com sucesso');
+
+    expect((await getExtra(um.id)).total_value).toBe(160);
+    expect((await getExtra(dois.id)).total_value).toBe(120);
+    expect((await getProject(project.id)).total_profit).toBe(280);
+  });
+
+  test('Recalculando extras de um mês', async () => {
+    const project = await createProject('Recalc Mês', 60);
+    const novembro = await createExtra(project.id, '03/01/2027', '18:00', '20:00');
+    const dezembro = await createExtra(project.id, '03/02/2027', '18:00', '20:00');
+    await changeHourlyValue(project.id, 80);
+
+    await recalculate(project.id, { scope: 'month', month: '2027-01' });
+
+    expect((await getExtra(novembro.id)).total_value).toBe(160);
+    expect((await getExtra(dezembro.id)).total_value).toBe(120);
+    expect(await monthTotal('2027-01')).toBeGreaterThanOrEqual(160);
+    expect((await getProject(project.id)).total_profit).toBe(280);
+  });
+
+  test('Recalculando todos os extras e ignorando os abertos', async () => {
+    const project = await createProject('Recalc Todos', 60);
+    const um = await createExtra(project.id, '03/03/2027', '18:00', '20:00');
+    const dois = await createExtra(project.id, '03/04/2027', '18:00', '19:00');
+    const aberto = await createExtra(project.id, '03/05/2027', '18:00');
+    await changeHourlyValue(project.id, 80);
+
+    await recalculate(project.id, { scope: 'all' });
+
+    expect((await getExtra(um.id)).total_value).toBe(160);
+    expect((await getExtra(dois.id)).total_value).toBe(80);
+    expect((await getExtra(aberto.id)).total_value).toBeNull();
+    expect((await getProject(project.id)).total_profit).toBe(240);
+  });
+
+  test('Erro ao recalcular com escopo inválido ou ausente', async () => {
+    const project = await createProject('Recalc Escopo', 60);
+
+    await callAssertError(ProjectsController.recalculateExtraHours, {
+      ...defaultReq,
+      params: { project_id: project.id },
+      body: {},
+    }, 'Escopo não informado');
+    await callAssertError(ProjectsController.recalculateExtraHours, {
+      ...defaultReq,
+      params: { project_id: project.id },
+      body: { scope: 'nada' },
+    }, 'Escopo inválido');
+  });
+
+  test('Recalculando selecionados sem enviar extras não altera nada', async () => {
+    const project = await createProject('Recalc Sem Extras', 60);
+    const extra = await createExtra(project.id, '03/07/2027', '18:00', '20:00');
+    await changeHourlyValue(project.id, 80);
+
+    await recalculate(project.id, { scope: 'selected' });
+    await recalculate(project.id, { scope: 'selected', extra_hour_ids: [] });
+
+    expect((await getExtra(extra.id)).total_value).toBe(120);
+  });
+
+  test('Erro ao recalcular com dados faltando para o escopo', async () => {
+    const project = await createProject('Recalc Faltando', 60);
+
+    await callAssertError(ProjectsController.recalculateExtraHours, {
+      ...defaultReq,
+      params: { project_id: project.id },
+      body: { scope: 'month' },
+    }, 'Mês não informado');
+    await callAssertError(ProjectsController.recalculateExtraHours, {
+      ...defaultReq,
+      params: { project_id: project.id },
+      body: { scope: 'month', month: '11/2026' },
+    }, 'Mês inválido');
+  });
+
+  test('Erro ao recalcular extras de outro projeto', async () => {
+    const project = await createProject('Recalc Projeto A', 60);
+    const outro = await createProject('Recalc Projeto B', 60);
+    const extra = await createExtra(outro.id, '03/06/2027', '18:00', '20:00');
+    await changeHourlyValue(outro.id, 80);
+
+    await callAssertError(ProjectsController.recalculateExtraHours, {
+      ...defaultReq,
+      params: { project_id: project.id },
+      body: { scope: 'selected', extra_hour_ids: [extra.id] },
+    }, 'Horas extras inválidas para o projeto');
+
+    expect((await getExtra(extra.id)).total_value).toBe(120);
+  });
+
+  test('Erro ao recalcular extras de outro usuário', async () => {
+    const alheio = await createOtherProject('Recalc Alheio');
+
+    await callAssertError(ProjectsController.recalculateExtraHours, {
+      ...defaultReq,
+      params: { project_id: alheio.id },
+      body: { scope: 'all' },
+    }, 'Projeto não encontrado');
+  });
+
+  test('Erro ao recalcular projeto inexistente', async () => {
+    await callAssertError(ProjectsController.recalculateExtraHours, {
+      ...defaultReq,
+      params: { project_id: 'nao-existe' },
+      body: { scope: 'all' },
+    }, 'Projeto não encontrado');
   });
 });

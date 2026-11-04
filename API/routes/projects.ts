@@ -8,4 +8,5 @@ export default async function ProjectsRoutes(fastify: FastifyInstance) {
   fastify.get('/project/:project_id', { preHandler: authenticate }, ProjectsController.getProject);
   fastify.put('/update-project/:project_id', { preHandler: authenticate }, ProjectsController.updateProject);
   fastify.delete('/delete-project/:project_id', { preHandler: authenticate }, ProjectsController.deleteProject);
+  fastify.post('/recalculate-extra-hours/:project_id', { preHandler: authenticate }, ProjectsController.recalculateExtraHours);
 }
