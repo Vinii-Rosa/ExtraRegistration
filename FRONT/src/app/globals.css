@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root,
+[data-theme="light"] {
+  --bg: #f2e8cf;
+  --card: #e9ddbe;
+  --card-hover: #ddcfab;
+  --border: #dccfae;
+  --fg: #2b2a24;
+  --muted: #6b6651;
+  --primary: #748cab;
+  --primary-hover: #5f7694;
+  --primary-fg: #16202c;
+  --success: #6a994e;
+  --success-hover: #587f40;
+  --success-fg: #16202c;
+  --danger: #9e2a2b;
+  --danger-hover: #832223;
+  --danger-fg: #ffffff;
+  --accent: #748cab;
+  --focus: #748cab;
+  --scroll: #d4cfc3;
+  --sel-bg: #748cab;
+  --sel-fg: #ffffff;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0d0d0e;
+  --card: #151518;
+  --card-hover: #1b1b1f;
+  --border: #222226;
+  --fg: #ececed;
+  --muted: #808086;
+  --primary: #ffffff;
+  --primary-hover: #e4e4e7;
+  --primary-fg: #000000;
+  --success-fg: #ffffff;
+  --accent: #5a189a;
+  --focus: #5a189a;
+  --scroll: #2a2a30;
+  --sel-bg: #5a189a;
+  --sel-fg: #ffffff;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-fg: var(--success-fg);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-fg: var(--danger-fg);
+  --color-accent: var(--accent);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
+}
+
+::selection {
+  background: var(--sel-bg);
+  color: var(--sel-fg);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll) transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scroll);
+  border-radius: 3px;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes skeleton {
+  50% {
+    opacity: 0.5;
+  }
+}
