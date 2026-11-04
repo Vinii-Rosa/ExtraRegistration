@@ -24,7 +24,7 @@ export const otherUserData = {
 
 export const defaultReq = { body: {}, params: {}, query: {} };
 
-export const ensureDefaultData = async () => {
+export async function ensureDefaultData() {
   const [user] = await Users.findOrCreate({
     where: { id: defaultUserData.id },
     defaults: {
@@ -33,9 +33,9 @@ export const ensureDefaultData = async () => {
     },
   });
   return { user };
-};
+}
 
-export const ensureOtherData = async () => {
+export async function ensureOtherData() {
   const [user] = await Users.findOrCreate({
     where: { id: otherUserData.id },
     defaults: {
@@ -44,9 +44,9 @@ export const ensureOtherData = async () => {
     },
   });
   return { user, loggedUser: { user_id: user.id, email: user.email } };
-};
+}
 
-export const mockReply = () => {
+export function mockReply() {
   const reply: any = {
     status: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
@@ -55,27 +55,29 @@ export const mockReply = () => {
     clearCookie: jest.fn().mockReturnThis(),
   };
   return reply;
-};
+}
 
-const buildReq = (overrides: Record<string, any> = {}, user?: Record<string, any>) => ({
-  body: {},
-  params: {},
-  query: {},
-  cookies: {},
-  user,
-  log: { error: jest.fn() },
-  server: jwtApp,
-  ...overrides,
-});
+function buildReq(overrides: Record<string, any> = {}, user?: Record<string, any>) {
+  return {
+    body: {},
+    params: {},
+    query: {},
+    cookies: {},
+    user,
+    log: { error: jest.fn() },
+    server: jwtApp,
+    ...overrides,
+  };
+}
 
-export const loginUser = async (overrides: Record<string, any> = {}) => {
+export async function loginUser(overrides: Record<string, any> = {}) {
   const { user } = await ensureDefaultData();
   const loggedUser = { user_id: user.id, email: user.email };
   const req = buildReq({ ...defaultReq, ...overrides }, loggedUser);
   return { req, user, loggedUser };
-};
+}
 
-export const callAssertSuccess = async (fn: (req: any, res: any) => Promise<any>, reqOverrides: Record<string, any> = {}, status?: number) => {
+export async function callAssertSuccess(fn: (req: any, res: any) => Promise<any>, reqOverrides: Record<string, any> = {}, status?: number) {
   const { req } = await loginUser(reqOverrides);
   const res = mockReply();
   await fn(req, res);
@@ -85,9 +87,9 @@ export const callAssertSuccess = async (fn: (req: any, res: any) => Promise<any>
   expect(code).toBeLessThan(300);
   if (status) expect(code).toBe(status);
   return res.send.mock.calls[0]?.[0];
-};
+}
 
-export const callAssertError = async (fn: (req: any, res: any) => Promise<any>, reqOverrides: Record<string, any> = {}, message?: string) => {
+export async function callAssertError(fn: (req: any, res: any) => Promise<any>, reqOverrides: Record<string, any> = {}, message?: string) {
   const { req } = await loginUser(reqOverrides);
   const res = mockReply();
   await fn(req, res);
@@ -97,9 +99,9 @@ export const callAssertError = async (fn: (req: any, res: any) => Promise<any>, 
   const body = res.send.mock.calls[0]?.[0];
   if (message) expect(body.message).toBe(message);
   return body;
-};
+}
 
-export const createProject = async (project_name: string, hourly_value = 60, reqOverrides: Record<string, any> = {}) => {
+export async function createProject(project_name: string, hourly_value = 60, reqOverrides: Record<string, any> = {}) {
   await callAssertSuccess(ProjectsController.createProject, {
     ...defaultReq,
     ...reqOverrides,
@@ -112,4 +114,4 @@ export const createProject = async (project_name: string, hourly_value = 60, req
     query: { project_name },
   }, 200);
   return projects.find((project: any) => project.project_name === project_name);
-};
+}

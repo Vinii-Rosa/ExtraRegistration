@@ -21,6 +21,7 @@
     "exceljs": "^4.4.0",
     "fastify": "^5.12.8",
     "mariadb": "^3.5.4",
+    "moment": "^2.31.0",
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
@@ -49,7 +50,11 @@
         {
           "useESM": true,
           "tsconfig": "tsconfig.json",
-          "diagnostics": {"ignoreCodes": [151002]}
+          "diagnostics": {
+            "ignoreCodes": [
+              151002
+            ]
+          }
         }
       ]
     },

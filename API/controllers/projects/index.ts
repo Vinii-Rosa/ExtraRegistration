@@ -11,7 +11,9 @@ type ProjectQuery = { project_name?: string; hourly_value?: string; created_at?:
 
 const projectAttributes = ['id', 'project_name', 'hourly_value', 'total_profit', 'createdAt'];
 
-const isValidHourlyValue = (value: unknown) => Number.isInteger(value) && (value as number) > 0;
+function isValidHourlyValue(value: unknown) {
+  return Number.isInteger(value) && (value as number) > 0;
+}
 
 const ProjectsController = {
   createProject: async (req: FastifyRequest, res: FastifyReply) => {

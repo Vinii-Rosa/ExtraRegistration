@@ -3,23 +3,23 @@ import { callAssertError, callAssertSuccess, createProject, defaultReq, ensureDe
 import ProjectsController from '../../controllers/projects/index.js';
 import ExtraHours from '../../models/extra_hours.js';
 
-const getProject = async (project_id: string) => {
+async function getProject(project_id: string) {
   const body = await callAssertSuccess(ProjectsController.getProject, {
     ...defaultReq,
     params: { project_id },
   }, 200);
   return body.project;
-};
+}
 
-const listProjects = async (query: Record<string, any> = {}) => {
+async function listProjects(query: Record<string, any> = {}) {
   const body = await callAssertSuccess(ProjectsController.getProjects, { ...defaultReq, query }, 200);
   return body.projects.map((project: any) => project.project_name);
-};
+}
 
-const createOtherProject = async (project_name: string) => {
+async function createOtherProject(project_name: string) {
   const { loggedUser } = await ensureOtherData();
   return createProject(project_name, 50, { user: loggedUser });
-};
+}
 
 describe('ProjectsController', () => {
   test('Criando um projeto novo', async () => {
