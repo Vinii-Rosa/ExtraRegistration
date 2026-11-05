@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { api, baseUrl } from "@/lib/api";
 import type { ExtraHoursPage, ExtraHoursQuery } from "@/types/extra-hours";
 
 export type ExtraHourBody = {
@@ -36,6 +36,13 @@ export const extraHourRoutes = {
       { token },
     );
     return data;
+  },
+
+  async exportMonth(token: string, month: string): Promise<Response> {
+    return fetch(`${baseUrl()}/extra-hours/export?month=${month}`, {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${token}` },
+    });
   },
 
   async create(token: string, body: ExtraHourBody) {

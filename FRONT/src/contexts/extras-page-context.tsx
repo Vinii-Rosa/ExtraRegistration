@@ -22,6 +22,7 @@ type Dialog =
   | { kind: "form"; extra: ExtraHour | null }
   | { kind: "close"; extra: ExtraHour }
   | { kind: "delete"; extra: ExtraHour }
+  | { kind: "export" }
   | null;
 
 type ExtrasPageContextValue = {
@@ -36,6 +37,7 @@ type ExtrasPageContextValue = {
   openEdit: (extra: ExtraHour) => void;
   openClose: (extra: ExtraHour) => void;
   openDelete: (extra: ExtraHour) => void;
+  openExport: () => void;
   closeDialog: () => void;
 };
 
@@ -94,6 +96,7 @@ export function ExtrasPageProvider({ children }: { children: ReactNode }) {
       openEdit: (extra) => setDialog({ kind: "form", extra }),
       openClose: (extra) => setDialog({ kind: "close", extra }),
       openDelete: (extra) => setDialog({ kind: "delete", extra }),
+      openExport: () => setDialog({ kind: "export" }),
       closeDialog: () => setDialog(null),
     };
   }, [searchParams, pathname, router, pending, dialog]);

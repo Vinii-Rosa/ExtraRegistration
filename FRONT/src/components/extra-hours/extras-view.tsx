@@ -1,22 +1,32 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Clock, Plus, SearchX } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Ellipsis,
+  FileSpreadsheet,
+  Plus,
+  SearchX,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { Menu, MenuItem } from "@/components/ui/menu";
 import { Select } from "@/components/ui/select";
 import { useExtrasPage } from "@/contexts/extras-page-context";
 import type { ExtraHoursPage } from "@/types/extra-hours";
 import { CloseExtraHourModal } from "./close-extra-hour-modal";
 import { DeleteExtraHourModal } from "./delete-extra-hour-modal";
 import { ExtraHourCard } from "./extra-hour-card";
+import { ExportModal } from "./export-modal";
 import { ExtraHourFormModal } from "./extra-hour-form-modal";
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h));
 
 export function ExtrasView({ data }: { data: ExtraHoursPage }) {
-  const { filters, pending, setFilter, clearFilters, goToPage, openCreate } =
+  const { filters, pending, setFilter, clearFilters, goToPage, openCreate, openExport } =
     useExtrasPage();
   const [totalDraft, setTotalDraft] = useState<string | null>(null);
   const filtering = Object.values(filters).some(Boolean);
@@ -30,6 +40,15 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Menu label="Mais ações" trigger={<Ellipsis size={16} />}>
+          <MenuItem onClick={openExport}>
+            <FileSpreadsheet size={14} />
+            Exportar planilha
+          </MenuItem>
+        </Menu>
+      </div>
+
       <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]">
         <Input
           id="filter-month"
@@ -143,6 +162,7 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
       <ExtraHourFormModal />
       <CloseExtraHourModal />
       <DeleteExtraHourModal />
+      <ExportModal />
     </div>
   );
 }

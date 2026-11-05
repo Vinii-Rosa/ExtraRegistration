@@ -44,6 +44,10 @@ export function currentMonthKey() {
   return dateKeyFormat.format(new Date()).slice(0, 7);
 }
 
+export function isMonthKey(value: string) {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
 export function formatMonth(month: string) {
   const [year, m] = month.split("-");
   const name = new Date(Number(year), Number(m) - 1, 1).toLocaleDateString(

@@ -14,7 +14,7 @@ type Options = {
   headers?: Record<string, string>;
 };
 
-function baseUrl() {
+export function baseUrl() {
   const url = process.env.API_URL;
   if (!url) throw new Error("API_URL não definida. Configure em .env.local");
   return url.replace(/\/$/, "");

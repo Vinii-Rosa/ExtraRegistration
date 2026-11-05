@@ -1,4 +1,5 @@
 import type { ExtraHoursQuery } from "@/types/extra-hours";
+import { isMonthKey } from "./format";
 
 export const DEFAULT_LIMIT = 10;
 
@@ -13,7 +14,8 @@ function positiveInt(value: string | undefined, fallback: number, max: number) {
 }
 
 export function parseExtrasQuery(raw: Raw): ExtraHoursQuery {
-  const month = first(raw.month);
+  const rawMonth = first(raw.month);
+  const month = rawMonth && isMonthKey(rawMonth) ? rawMonth : undefined;
   const date = month ? undefined : first(raw.date);
   const hour = first(raw.hour);
   const total = first(raw.total_value);
