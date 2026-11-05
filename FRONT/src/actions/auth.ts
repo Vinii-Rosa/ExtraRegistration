@@ -54,16 +54,8 @@ export async function registerAction(
     return { error: messageOf(error), values };
   }
 
-  try {
-    await setSessionCookies(await authRoutes.login(email, password));
-  } catch {
-    return {
-      error: "Conta criada, mas não foi possível entrar. Faça login",
-      values,
-    };
-  }
-
-  redirect("/extras");
+  // Só cria a conta: quem entra é o login
+  redirect("/login?created=1");
 }
 
 export async function logoutAction() {

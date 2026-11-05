@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { AccountCreatedNotice } from "@/components/auth/account-created-notice";
 import { AuthCard } from "@/components/auth/auth-card";
 import { LoginForm } from "@/components/auth/login-form";
 
@@ -11,6 +13,9 @@ export default function LoginPage() {
       description="Acesse suas horas extras"
       footer={{ text: "Não tem conta?", href: "/cadastro", link: "Criar conta" }}
     >
+      <Suspense>
+        <AccountCreatedNotice />
+      </Suspense>
       <LoginForm />
     </AuthCard>
   );
