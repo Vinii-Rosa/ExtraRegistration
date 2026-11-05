@@ -210,6 +210,26 @@ describe('ExtraHoursController', () => {
       expect((await listExtras({ month, total_value: '60' })).count).toBe(1);
     });
 
+    test('Filtro por intervalo de datas', async () => {
+      const project = await createProject('Extra Intervalo', 60);
+      for (const date of ['01/04/2028', '10/04/2028', '11/04/2028', '30/04/2028']) {
+        await createExtra({ project_id: project.id, date, start_time: '18:00', end_time: '20:00' });
+      }
+
+      async function dates(query: Record<string, any>) {
+        const { extra_hours } = await listExtras({ ...query, limit: '100' });
+        return extra_hours.filter((item: any) => item.project_id === project.id).map((item: any) => item.date);
+      }
+
+      expect(await dates({ date_from: '01/04/2028', date_to: '10/04/2028' })).toEqual(['2028-04-10', '2028-04-01']);
+      expect(await dates({ date_from: '11/04/2028' })).toEqual(['2028-04-30', '2028-04-11']);
+      expect(await dates({ date_to: '01/04/2028' })).toEqual(['2028-04-01']);
+      expect(await dates({ date_from: '10/04/2028', date_to: '10/04/2028' })).toEqual(['2028-04-10']);
+      expect(await dates({ date_from: '05/04/2028', date_to: '09/04/2028' })).toEqual([]);
+      // O intervalo tem prioridade sobre date e month
+      expect(await dates({ date_from: '30/04/2028', date: '01/04/2028', month: '2028-03' })).toEqual(['2028-04-30']);
+    });
+
     test('Erros de parâmetros inválidos', async () => {
       const cases: [Record<string, any>, string][] = [
         [{ page: '0' }, 'Página inválida'],
@@ -217,6 +237,9 @@ describe('ExtraHoursController', () => {
         [{ limit: 'abc' }, 'Limite inválido'],
         [{ date: '2026-11-03' }, 'Data inválida'],
         [{ month: '11/2026' }, 'Mês inválido'],
+        [{ date_from: '2026-11-03' }, 'Data inicial inválida'],
+        [{ date_to: '31/02/2026' }, 'Data final inválida'],
+        [{ date_from: '10/11/2026', date_to: '09/11/2026' }, 'Data inicial maior que a data final'],
         [{ hour: '24' }, 'Hora inválida'],
         [{ total_value: 'abc' }, 'Valor inválido'],
       ];

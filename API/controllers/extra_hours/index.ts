@@ -23,6 +23,8 @@ type ExtraHourQuery = {
   page?: string;
   limit?: string;
   date?: string;
+  date_from?: string;
+  date_to?: string;
   month?: string;
   hour?: string;
   total_value?: string;
@@ -147,6 +149,24 @@ const ExtraHoursController = {
         where.date = {
           [Op.gte]: month.clone().startOf('month').format('YYYY-MM-DD'),
           [Op.lt]: month.clone().add(1, 'month').startOf('month').format('YYYY-MM-DD'),
+        };
+      }
+      if (query.date_from !== undefined || query.date_to !== undefined) {
+        if (query.date_from !== undefined && !isValidDate(query.date_from)) {
+          return res.status(400).send({ message: 'Data inicial inválida' });
+        }
+        if (query.date_to !== undefined && !isValidDate(query.date_to)) {
+          return res.status(400).send({ message: 'Data final inválida' });
+        }
+        const from = query.date_from === undefined ? undefined : toDbDate(query.date_from);
+        const to = query.date_to === undefined ? undefined : toDbDate(query.date_to);
+        if (from && to && from > to) {
+          return res.status(400).send({ message: 'Data inicial maior que a data final' });
+        }
+        // O intervalo tem prioridade sobre date e month
+        where.date = {
+          ...(from && { [Op.gte]: from }),
+          ...(to && { [Op.lte]: to }),
         };
       }
       if (query.hour !== undefined) {
