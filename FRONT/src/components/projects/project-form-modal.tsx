@@ -67,7 +67,7 @@ export function ProjectFormModal() {
           </p>
         )}
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="ghost" onClick={close}>
+          <Button variant="danger" onClick={close}>
             Cancelar
           </Button>
           <Button variant="success" type="submit" disabled={pending}>

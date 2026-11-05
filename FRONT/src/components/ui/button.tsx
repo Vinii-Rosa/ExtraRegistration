@@ -3,9 +3,9 @@ import type { ButtonHTMLAttributes } from "react";
 type Variant = "primary" | "success" | "danger" | "ghost" | "icon";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2",
-  success: "bg-success text-success-fg hover:bg-success-hover px-4 py-2",
-  danger: "bg-danger text-danger-fg hover:bg-danger-hover px-4 py-2",
+  primary: "border border-transparent bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2",
+  success: "border border-transparent bg-success text-success-fg hover:bg-success-hover px-4 py-2",
+  danger: "border border-transparent bg-danger text-danger-fg hover:bg-danger-hover px-4 py-2",
   ghost:
     "border border-border hover:bg-card-hover hover:border-accent px-4 py-2",
   icon: "p-2 hover:bg-card-hover",

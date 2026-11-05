@@ -32,7 +32,7 @@ export function DeleteProjectModal() {
         Esta ação não pode ser desfeita.
       </p>
       <div className="grid grid-cols-2 gap-3">
-        <Button variant="ghost" onClick={closeDialog}>
+        <Button variant="danger" onClick={closeDialog}>
           Cancelar
         </Button>
         <Button variant="danger" onClick={confirm} disabled={pending}>
