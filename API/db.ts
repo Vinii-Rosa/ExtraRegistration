@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 
 const isTest = process.env.NODE_ENV === 'test';
-const database = isTest ? 'extra_hour_test' : 'extra_hour';
+const database = isTest ? 'extra_hour_test' : process.env.DB_NAME || 'extra_hour';
 
 const db = new Sequelize(database, process.env.DB_USER || 'root', process.env.DB_PASSWORD || 'root', {
   host: process.env.DB_HOST || 'localhost',
