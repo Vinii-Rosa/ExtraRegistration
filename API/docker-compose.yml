@@ -18,22 +18,22 @@ services:
         condition: service_healthy
 
   extra_hour_db:
-    image: mariadb:11.4
+    image: mysql:8.4
     container_name: extra_hour_db
     ports:
       - "3307:3306"
     environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: extra_hour
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: extra_hour
     volumes:
-      - extra_hour_db_data:/var/lib/mysql
+      - extra_hour_mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 20s
 
 volumes:
-  extra_hour_db_data:
+  extra_hour_mysql_data:
   extra_hour_node_modules:
