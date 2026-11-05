@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsLeft, ChevronsRight, Clock } from "lucide-react";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/contexts/sidebar-context";
@@ -29,16 +29,12 @@ export function Sidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="group relative flex h-14 shrink-0 items-center gap-2.5 border-b border-border pr-4 pl-5">
-          <span className="relative flex size-6 shrink-0 items-center justify-center">
-            <span className="flex size-6 items-center justify-center rounded bg-primary text-primary-fg transition-opacity duration-400 ease-ui md:sb-closed:group-hover:opacity-0">
-              <Clock size={14} strokeWidth={2.5} />
-            </span>
-            <ChevronsRight
-              size={16}
-              className="absolute opacity-0 transition-opacity duration-400 ease-ui md:sb-closed:group-hover:opacity-100"
-            />
-          </span>
+        <div className="relative flex h-14 shrink-0 items-center border-b border-border pr-4 pl-5">
+          <ChevronsRight
+            aria-hidden
+            size={16}
+            className="absolute left-[23.5px] text-muted opacity-0 transition-opacity duration-400 ease-ui md:sb-closed:opacity-100"
+          />
           <span className={`${label} flex-1 text-sm font-bold tracking-tight`}>
             Extra Hour
           </span>
@@ -78,7 +74,7 @@ export function Sidebar() {
                         aria-current={active ? "page" : undefined}
                         title={text}
                         onClick={() => setMobileOpen(false)}
-                        className={`group flex items-center gap-3 overflow-hidden rounded-lg p-3 text-xs font-semibold transition-colors duration-250 ease-ui focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
+                        className={`group flex items-center gap-3 overflow-hidden rounded-lg p-3 text-xs font-semibold transition-[color,background-color,padding] duration-250 ease-ui md:sb-closed:px-[7.5px] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                           active
                             ? "bg-primary text-primary-fg shadow-sm dark:bg-card dark:text-fg dark:shadow-[inset_0_0_0_1px_var(--border)]"
                             : "text-muted hover:bg-card-hover hover:text-fg"

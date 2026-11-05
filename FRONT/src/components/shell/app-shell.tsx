@@ -19,11 +19,11 @@ export function AppShell({
     <SessionProvider email={email}>
       <ProjectsProvider projects={projects}>
         <SidebarProvider>
-          <div className="grid min-h-dvh grid-cols-1 transition-[grid-template-columns] duration-600 ease-ui md:grid-cols-[var(--sidebar-w)_minmax(0,1fr)]">
+          <div className="grid h-dvh grid-cols-1 grid-rows-[minmax(0,1fr)] transition-[grid-template-columns] duration-600 ease-ui md:grid-cols-[var(--sidebar-w)_minmax(0,1fr)]">
             <Sidebar />
-            <div className="flex min-w-0 flex-col">
+            <div className="flex min-h-0 min-w-0 flex-col">
               <Header />
-              <main className="flex-1 px-6 py-6 lg:px-10 lg:py-12">
+              <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-6 lg:px-10 lg:py-12 md:overflow-hidden">
                 {children}
               </main>
             </div>

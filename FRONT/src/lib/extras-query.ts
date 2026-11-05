@@ -1,5 +1,5 @@
 import type { ExtraHoursQuery } from "@/types/extra-hours";
-import { isMonthKey } from "./format";
+import { isDateKey } from "./format";
 
 export const DEFAULT_LIMIT = 10;
 
@@ -14,17 +14,19 @@ function positiveInt(value: string | undefined, fallback: number, max: number) {
 }
 
 export function parseExtrasQuery(raw: Raw): ExtraHoursQuery {
-  const rawMonth = first(raw.month);
-  const month = rawMonth && isMonthKey(rawMonth) ? rawMonth : undefined;
-  const date = month ? undefined : first(raw.date);
+  const rawFrom = first(raw.from);
+  const rawTo = first(raw.to);
+  let from = rawFrom && isDateKey(rawFrom) ? rawFrom : undefined;
+  let to = rawTo && isDateKey(rawTo) ? rawTo : undefined;
+  if (from && to && from > to) [from, to] = [to, from];
   const hour = first(raw.hour);
   const total = first(raw.total_value);
 
   return {
     page: positiveInt(first(raw.page), 1, Number.MAX_SAFE_INTEGER),
     limit: positiveInt(first(raw.limit), DEFAULT_LIMIT, 100),
-    month,
-    date,
+    from,
+    to,
     hour: hour && Number.isInteger(Number(hour)) ? hour : undefined,
     total_value: total && Number.isInteger(Number(total)) ? total : undefined,
   };

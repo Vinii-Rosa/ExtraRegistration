@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { ExtrasView } from "@/components/extra-hours/extras-view";
 import { MonthTotalStrip } from "@/components/extra-hours/month-total-strip";
@@ -24,8 +25,11 @@ async function Extras({
 }) {
   const query = parseExtrasQuery(await searchParams);
   const { token, userId } = await requireSession();
+  // O mês atual muda com o tempo: só pode ser lido na requisição
+  await connection();
 
-  const month = query.month ?? query.date?.slice(0, 7) ?? currentMonthKey();
+  const month =
+    query.from?.slice(0, 7) ?? query.to?.slice(0, 7) ?? currentMonthKey();
   const [data, totals] = await Promise.all([
     getExtraHours(token, userId, query),
     getMonthlyTotals(token, userId),
@@ -33,7 +37,7 @@ async function Extras({
   const total = totals.find((t) => t.month === month)?.total ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-1 flex-col gap-6 md:min-h-0">
       <MonthTotalStrip month={month} total={total} />
       <ExtrasPageProvider>
         <ExtrasView data={data} />

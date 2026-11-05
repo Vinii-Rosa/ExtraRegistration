@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Ellipsis,
   FileSpreadsheet,
@@ -14,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Menu, MenuItem } from "@/components/ui/menu";
+import { PaginationBar } from "@/components/ui/pagination-bar";
 import { Select } from "@/components/ui/select";
 import { useExtrasPage } from "@/contexts/extras-page-context";
 import type { ExtraHoursPage } from "@/types/extra-hours";
@@ -23,7 +22,6 @@ import { ExtraHourCard } from "./extra-hour-card";
 import { ExportModal } from "./export-modal";
 import { ExtraHourFormModal } from "./extra-hour-form-modal";
 
-const LIMITS = [10, 20, 50, 100];
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h));
 
 export function ExtrasView({ data }: { data: ExtraHoursPage }) {
@@ -40,7 +38,7 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-1 flex-col gap-6 md:min-h-0">
       <div className="flex justify-end">
         <Menu label="Mais ações" trigger={<Ellipsis size={16} />}>
           <MenuItem onClick={openExport}>
@@ -52,18 +50,20 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
 
       <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]">
         <Input
-          id="filter-month"
-          label="Mês"
-          type="month"
-          value={filters.month}
-          onChange={(e) => setFilter("month", e.target.value)}
+          id="filter-from"
+          label="De"
+          type="date"
+          max={filters.to || undefined}
+          value={filters.from}
+          onChange={(e) => setFilter("from", e.target.value)}
         />
         <Input
-          id="filter-date"
-          label="Data"
+          id="filter-to"
+          label="Até"
           type="date"
-          value={filters.date}
-          onChange={(e) => setFilter("date", e.target.value)}
+          min={filters.from || undefined}
+          value={filters.to}
+          onChange={(e) => setFilter("to", e.target.value)}
         />
         <Select
           id="filter-hour"
@@ -115,17 +115,11 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
             icon={Clock}
             title="Nenhuma hora extra ainda"
             description="Suas horas extras registradas aparecem aqui."
-            action={
-              <Button variant="success" onClick={openCreate}>
-                <Plus size={14} />
-                Novo extra
-              </Button>
-            }
           />
         )
       ) : (
         <div
-          className={`grid gap-4 transition-opacity duration-250 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))] ${pending ? "opacity-60" : ""}`}
+          className={`-mx-2 -my-2 grid auto-rows-max content-start gap-4 px-2 py-2 transition-opacity duration-250 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))] md:min-h-0 md:flex-1 md:overflow-y-auto ${pending ? "opacity-60" : ""}`}
         >
           {data.extra_hours.map((extra) => (
             <ExtraHourCard key={extra.id} extra={extra} />
@@ -134,50 +128,15 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
       )}
 
       {data.count > 0 && (
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="w-32">
-            <Select
-              id="filter-limit"
-              label="Por página"
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-            >
-              {[...new Set([...LIMITS, limit])]
-                .sort((a, b) => a - b)
-                .map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-            </Select>
-          </div>
-          {data.total_pages > 1 && (
-            <nav
-              aria-label="Paginação"
-              className="flex items-center gap-4"
-            >
-              <Button
-                variant="ghost"
-                aria-label="Página anterior"
-                disabled={data.page <= 1}
-                onClick={() => goToPage(data.page - 1)}
-              >
-                <ChevronLeft size={14} />
-              </Button>
-              <span className="text-muted">
-                Página {data.page} de {data.total_pages} · {data.count} extras
-              </span>
-              <Button
-                variant="ghost"
-                aria-label="Próxima página"
-                disabled={data.page >= data.total_pages}
-                onClick={() => goToPage(data.page + 1)}
-              >
-                <ChevronRight size={14} />
-              </Button>
-            </nav>
-          )}
-        </div>
+        <PaginationBar
+          limit={limit}
+          onLimitChange={setLimit}
+          page={data.page}
+          totalPages={data.total_pages}
+          count={data.count}
+          noun="extras"
+          onPage={goToPage}
+        />
       )}
 
       <ExtraHourFormModal />

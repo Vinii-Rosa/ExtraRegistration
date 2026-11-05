@@ -21,6 +21,10 @@ type ProjectsPageContextValue = {
   filters: ProjectFilters;
   setFilter: (key: keyof ProjectFilters, value: string) => void;
   clearFilters: () => void;
+  page: number;
+  limit: number;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
   dialog: Dialog;
   openCreate: () => void;
   openEdit: (project: Project) => void;
@@ -30,6 +34,7 @@ type ProjectsPageContextValue = {
 };
 
 const emptyFilters: ProjectFilters = { name: "", hourly: "", date: "" };
+const DEFAULT_LIMIT = 10;
 
 const ProjectsPageContext = createContext<ProjectsPageContextValue | null>(
   null,
@@ -37,13 +42,28 @@ const ProjectsPageContext = createContext<ProjectsPageContextValue | null>(
 
 export function ProjectsPageProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState(emptyFilters);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_LIMIT);
   const [dialog, setDialog] = useState<Dialog>(null);
 
   const value = useMemo<ProjectsPageContextValue>(
     () => ({
       filters,
-      setFilter: (key, v) => setFilters((f) => ({ ...f, [key]: v })),
-      clearFilters: () => setFilters(emptyFilters),
+      setFilter: (key, v) => {
+        setFilters((f) => ({ ...f, [key]: v }));
+        setPage(1);
+      },
+      clearFilters: () => {
+        setFilters(emptyFilters);
+        setPage(1);
+      },
+      page,
+      limit,
+      setPage,
+      setLimit: (next) => {
+        setLimit(next);
+        setPage(1);
+      },
       dialog,
       openCreate: () => setDialog({ kind: "form", project: null }),
       openEdit: (project) => setDialog({ kind: "form", project }),
@@ -51,7 +71,7 @@ export function ProjectsPageProvider({ children }: { children: ReactNode }) {
       openRecalculate: (project) => setDialog({ kind: "recalculate", project }),
       closeDialog: () => setDialog(null),
     }),
-    [filters, dialog],
+    [filters, page, limit, dialog],
   );
 
   return (

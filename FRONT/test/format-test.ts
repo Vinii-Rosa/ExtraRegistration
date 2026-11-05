@@ -5,6 +5,7 @@ import {
   formatMonth,
   formatTime,
   formatTimestamp,
+  isDateKey,
   isMonthKey,
   timestampDateKey,
 } from "@/lib/format";
@@ -72,6 +73,22 @@ describe("isMonthKey", () => {
     expect(isMonthKey("2026-1")).toBe(false);
     expect(isMonthKey("2026-11-04")).toBe(false);
     expect(isMonthKey("")).toBe(false);
+  });
+});
+
+describe("isDateKey", () => {
+  it("aceita datas reais em YYYY-MM-DD", () => {
+    expect(isDateKey("2026-11-04")).toBe(true);
+    expect(isDateKey("2028-02-29")).toBe(true);
+  });
+
+  it("rejeita datas inexistentes e outros formatos", () => {
+    expect(isDateKey("2026-02-31")).toBe(false);
+    expect(isDateKey("2027-02-29")).toBe(false);
+    expect(isDateKey("2026-13-01")).toBe(false);
+    expect(isDateKey("04/11/2026")).toBe(false);
+    expect(isDateKey("2026-11")).toBe(false);
+    expect(isDateKey("")).toBe(false);
   });
 });
 

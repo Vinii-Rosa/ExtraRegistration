@@ -13,8 +13,8 @@ import { DEFAULT_LIMIT } from "@/lib/extras-query";
 import type { ExtraHour } from "@/types/extra-hours";
 
 export type ExtraFilters = {
-  month: string;
-  date: string;
+  from: string;
+  to: string;
   hour: string;
   total_value: string;
 };
@@ -60,13 +60,10 @@ export function ExtrasPageProvider({ children }: { children: ReactNode }) {
         router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
       });
 
-    const month = searchParams.get("month") ?? "";
-    const date = month ? "" : (searchParams.get("date") ?? "");
-
     return {
       filters: {
-        month,
-        date,
+        from: searchParams.get("from") ?? "",
+        to: searchParams.get("to") ?? "",
         hour: searchParams.get("hour") ?? "",
         total_value: searchParams.get("total_value") ?? "",
       },
@@ -77,14 +74,12 @@ export function ExtrasPageProvider({ children }: { children: ReactNode }) {
         const params = new URLSearchParams(searchParams);
         if (v) params.set(key, v);
         else params.delete(key);
-        if (v && key === "month") params.delete("date");
-        if (v && key === "date") params.delete("month");
         params.delete("page");
         navigate(params);
       },
       clearFilters: () => {
         const params = new URLSearchParams(searchParams);
-        for (const key of ["month", "date", "hour", "total_value", "page"]) {
+        for (const key of ["from", "to", "hour", "total_value", "page"]) {
           params.delete(key);
         }
         navigate(params);

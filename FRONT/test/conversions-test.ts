@@ -41,8 +41,8 @@ describe("parseExtrasQuery", () => {
     expect(parseExtrasQuery({})).toEqual({
       page: 1,
       limit: DEFAULT_LIMIT,
-      month: undefined,
-      date: undefined,
+      from: undefined,
+      to: undefined,
       hour: undefined,
       total_value: undefined,
     });
@@ -52,29 +52,49 @@ describe("parseExtrasQuery", () => {
     const query = parseExtrasQuery({
       page: "3",
       limit: "25",
-      date: "2026-11-04",
+      from: "2026-11-01",
+      to: "2026-11-10",
       hour: "2",
       total_value: "120",
     });
     expect(query).toMatchObject({
       page: 3,
       limit: 25,
-      date: "2026-11-04",
+      from: "2026-11-01",
+      to: "2026-11-10",
       hour: "2",
       total_value: "120",
     });
   });
 
-  it("month tem prioridade e descarta date, como na API", () => {
-    const query = parseExtrasQuery({ month: "2026-11", date: "2026-11-04" });
-    expect(query.month).toBe("2026-11");
-    expect(query.date).toBeUndefined();
+  it("aceita só o início ou só o fim do intervalo", () => {
+    expect(parseExtrasQuery({ from: "2026-11-05" })).toMatchObject({
+      from: "2026-11-05",
+      to: undefined,
+    });
+    expect(parseExtrasQuery({ to: "2026-11-05" })).toMatchObject({
+      from: undefined,
+      to: "2026-11-05",
+    });
   });
 
-  it("ignora month inválido e mantém date", () => {
-    const query = parseExtrasQuery({ month: "2026-13", date: "2026-11-04" });
+  it("inverte o intervalo quando o início é depois do fim", () => {
+    const query = parseExtrasQuery({ from: "2026-11-10", to: "2026-11-01" });
+    expect(query.from).toBe("2026-11-01");
+    expect(query.to).toBe("2026-11-10");
+  });
+
+  it("ignora datas inválidas", () => {
+    const query = parseExtrasQuery({ from: "2026-02-31", to: "04/11/2026" });
+    expect(query.from).toBeUndefined();
+    expect(query.to).toBeUndefined();
+  });
+
+  it("não lê mais month nem date da URL", () => {
+    const query = parseExtrasQuery({ month: "2026-11", date: "2026-11-04" });
+    expect(query.from).toBeUndefined();
+    expect(query.to).toBeUndefined();
     expect(query.month).toBeUndefined();
-    expect(query.date).toBe("2026-11-04");
   });
 
   it("corrige page e limit inválidos", () => {

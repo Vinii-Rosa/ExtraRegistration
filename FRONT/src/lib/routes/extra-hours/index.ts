@@ -27,7 +27,8 @@ export const extraHourRoutes = {
       limit: String(query.limit),
     });
     if (query.month) params.set("month", query.month);
-    if (query.date) params.set("date", toApiDate(query.date));
+    if (query.from) params.set("date_from", toApiDate(query.from));
+    if (query.to) params.set("date_to", toApiDate(query.to));
     if (query.hour) params.set("hour", query.hour);
     if (query.total_value) params.set("total_value", query.total_value);
 

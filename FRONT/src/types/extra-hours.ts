@@ -20,8 +20,9 @@ export type ExtraHoursPage = {
 export type ExtraHoursQuery = {
   page: number;
   limit: number;
+  from?: string;
+  to?: string;
   month?: string;
-  date?: string;
   hour?: string;
   total_value?: string;
 };

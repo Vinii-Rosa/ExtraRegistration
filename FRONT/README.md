@@ -6,9 +6,9 @@ Interface do Extra Hour, feita com Next.js 16, React 19, TypeScript e Tailwind 4
 
 | Rota | Conteúdo |
 |---|---|
-| `/login`, `/cadastro` | Entrar e criar conta. Depois do cadastro o login é automático |
-| `/extras` | Lista de horas extras com filtros (data, mês, hora, valor), paginação, itens por página, total do mês, criar, editar, fechar, reabrir, excluir e exportar planilha |
-| `/projetos` | Projetos com filtro local, criar, editar, excluir e recálculo dos extras ao mudar o valor/hora |
+| `/login`, `/cadastro` | Entrar e criar conta. O cadastro só cria a conta e volta para o login, com um aviso |
+| `/extras` | Lista de horas extras com filtros (intervalo de datas De/Até, hora de início, valor), paginação, itens por página, total do mês, criar, editar, fechar, reabrir, excluir e exportar planilha |
+| `/projetos` | Projetos com filtro local, paginação local com itens por página, criar, editar, excluir e recálculo dos extras ao mudar o valor/hora |
 
 ## Como rodar
 
@@ -59,7 +59,7 @@ Todas as chamadas ficam em `src/lib/routes/*`, em cima do cliente de `src/lib/ap
 `cacheComponents: true`. As leituras em `src/lib/data/*` usam `'use cache'` com `cacheLife` e `cacheTag`.
 
 - O token entra como argumento da função e, portanto, na chave do cache: só quem tem aquele token acerta a entrada, sem vazar dados entre usuários. O cache dura no máximo 15 min, o tempo de vida do token.
-- Listagem de extras só entra no cache com `page`, `limit` e `month`. Filtros por `date`, `hour` ou `total_value` não são cacheados.
+- A listagem de extras só entra no cache sem filtros (`page` e `limit`). Qualquer filtro (`from`/`to`, `hour` ou `total_value`) vai direto à API, sem cache.
 - Escritas invalidam com `updateTag`, conforme o mapa em `src/lib/cache-tags.ts`:
 
 | Escrita | Tags invalidadas |
@@ -74,7 +74,7 @@ Todas as chamadas ficam em `src/lib/routes/*`, em cima do cliente de `src/lib/ap
 
 ### Estado
 
-`useContext` no lugar de props em cascata: `ThemeContext` e `ToastContext` na raiz; `SessionContext`, `SidebarContext` e `ProjectsContext` no layout `(app)`; `ExtrasPageContext` e `ProjectsPageContext` nas telas. Filtros e página de extras ficam na URL, então o botão voltar funciona.
+`useContext` no lugar de props em cascata: `ThemeContext` e `ToastContext` na raiz; `SessionContext`, `SidebarContext` e `ProjectsContext` no layout `(app)`; `ExtrasPageContext` e `ProjectsPageContext` nas telas. Filtros e página de extras ficam na URL (`from`, `to`, `hour`, `total_value`, `page`, `limit`), então o botão voltar funciona.
 
 ### Estrutura
 
@@ -92,6 +92,10 @@ src/
 test/           testes Jest (*-test.ts)
 ```
 
+### Layout e scroll
+
+O app ocupa a altura da tela e a página não rola. Em extras e projetos, a lista de cards rola por dentro (filtros no topo e "Por página"/paginação no rodapé ficam fixos). No celular (< `md`) o conteúdo todo rola dentro do `main`.
+
 ### Design
 
 Medidas, tipografia e efeito da sidebar seguem o padrão de front do projeto. Os tokens semânticos ficam em `src/app/globals.css` e trocam com `data-theme` (light e dark). O tema e a sidebar guardam a escolha em `localStorage`, aplicada por um script inline antes da hidratação, sem piscar.
@@ -101,6 +105,6 @@ Medidas, tipografia e efeito da sidebar seguem o padrão de front do projeto. Os
 Jest com `next/jest`, em `test/*-test.ts`. Cobrem o que não depende de rede nem do runtime do Next:
 
 - `format-test.ts`: moeda (`null` é "Em aberto", nunca R$ 0), datas, horas, fuso de São Paulo e mês.
-- `conversions-test.ts`: conversão de data na borda com a API e leitura dos filtros da URL.
+- `conversions-test.ts`: conversão de data na borda com a API e leitura dos filtros da URL (intervalo `from`/`to`).
 - `tokens-test.ts`: leitura do `refresh_token` nos `Set-Cookie`, payload do JWT e janela de renovação de 30 s.
 - `cache-tags-test.ts`: mapa de invalidação por tipo de escrita.

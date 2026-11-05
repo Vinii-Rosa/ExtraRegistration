@@ -29,7 +29,7 @@ export function ExportModal() {
   const [month, setMonth] = useState<string>();
 
   const open = dialog?.kind === "export";
-  const value = month ?? (filters.month || filters.date.slice(0, 7) || currentMonthKey());
+  const value = month ?? (filters.from.slice(0, 7) || filters.to.slice(0, 7) || currentMonthKey());
 
   function close() {
     setMonth(undefined);
