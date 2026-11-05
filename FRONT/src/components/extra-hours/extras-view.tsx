@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Clock, SearchX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Plus, SearchX } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useExtrasPage } from "@/contexts/extras-page-context";
 import type { ExtraHoursPage } from "@/types/extra-hours";
+import { CloseExtraHourModal } from "./close-extra-hour-modal";
+import { DeleteExtraHourModal } from "./delete-extra-hour-modal";
 import { ExtraHourCard } from "./extra-hour-card";
+import { ExtraHourFormModal } from "./extra-hour-form-modal";
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h));
 
 export function ExtrasView({ data }: { data: ExtraHoursPage }) {
-  const { filters, pending, setFilter, clearFilters, goToPage } =
+  const { filters, pending, setFilter, clearFilters, goToPage, openCreate } =
     useExtrasPage();
   const [totalDraft, setTotalDraft] = useState<string | null>(null);
   const filtering = Object.values(filters).some(Boolean);
@@ -27,7 +30,7 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
+      <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]">
         <Input
           id="filter-month"
           label="Mês"
@@ -69,6 +72,10 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
         <Button variant="ghost" onClick={clearFilters} disabled={!filtering}>
           Limpar
         </Button>
+        <Button variant="success" onClick={openCreate}>
+          <Plus size={14} />
+          Novo extra
+        </Button>
       </div>
 
       {data.count === 0 ? (
@@ -88,6 +95,12 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
             icon={Clock}
             title="Nenhuma hora extra ainda"
             description="Suas horas extras registradas aparecem aqui."
+            action={
+              <Button variant="success" onClick={openCreate}>
+                <Plus size={14} />
+                Novo extra
+              </Button>
+            }
           />
         )
       ) : (
@@ -126,6 +139,10 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
           </Button>
         </nav>
       )}
+
+      <ExtraHourFormModal />
+      <CloseExtraHourModal />
+      <DeleteExtraHourModal />
     </div>
   );
 }

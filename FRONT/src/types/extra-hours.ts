@@ -27,3 +27,13 @@ export type ExtraHoursQuery = {
 };
 
 export type MonthlyTotal = { month: string; total: number };
+
+export type ExtraHourInput = {
+  id?: string;
+  project_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  card_name: string;
+  card_link: string;
+};

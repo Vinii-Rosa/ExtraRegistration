@@ -5,9 +5,11 @@ import {
   createContext,
   useContext,
   useMemo,
+  useState,
   useTransition,
   type ReactNode,
 } from "react";
+import type { ExtraHour } from "@/types/extra-hours";
 
 export type ExtraFilters = {
   month: string;
@@ -16,6 +18,12 @@ export type ExtraFilters = {
   total_value: string;
 };
 
+type Dialog =
+  | { kind: "form"; extra: ExtraHour | null }
+  | { kind: "close"; extra: ExtraHour }
+  | { kind: "delete"; extra: ExtraHour }
+  | null;
+
 type ExtrasPageContextValue = {
   filters: ExtraFilters;
   page: number;
@@ -23,6 +31,12 @@ type ExtrasPageContextValue = {
   setFilter: (key: keyof ExtraFilters, value: string) => void;
   clearFilters: () => void;
   goToPage: (page: number) => void;
+  dialog: Dialog;
+  openCreate: () => void;
+  openEdit: (extra: ExtraHour) => void;
+  openClose: (extra: ExtraHour) => void;
+  openDelete: (extra: ExtraHour) => void;
+  closeDialog: () => void;
 };
 
 const ExtrasPageContext = createContext<ExtrasPageContextValue | null>(null);
@@ -32,6 +46,7 @@ export function ExtrasPageProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
+  const [dialog, setDialog] = useState<Dialog>(null);
 
   const value = useMemo<ExtrasPageContextValue>(() => {
     const navigate = (params: URLSearchParams) =>
@@ -74,8 +89,14 @@ export function ExtrasPageProvider({ children }: { children: ReactNode }) {
         else params.delete("page");
         navigate(params);
       },
+      dialog,
+      openCreate: () => setDialog({ kind: "form", extra: null }),
+      openEdit: (extra) => setDialog({ kind: "form", extra }),
+      openClose: (extra) => setDialog({ kind: "close", extra }),
+      openDelete: (extra) => setDialog({ kind: "delete", extra }),
+      closeDialog: () => setDialog(null),
     };
-  }, [searchParams, pathname, router, pending]);
+  }, [searchParams, pathname, router, pending, dialog]);
 
   return <ExtrasPageContext value={value}>{children}</ExtrasPageContext>;
 }

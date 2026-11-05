@@ -1,15 +1,38 @@
 "use client";
 
-import { Clock, ExternalLink } from "lucide-react";
+import {
+  CircleCheck,
+  Clock,
+  ExternalLink,
+  Pencil,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
+import { useTransition } from "react";
+import { reopenExtraHourAction } from "@/actions/extra-hours";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useExtrasPage } from "@/contexts/extras-page-context";
 import { useProjects } from "@/contexts/projects-context";
+import { useToast } from "@/contexts/toast-context";
 import { formatCurrency, formatDate, formatTime } from "@/lib/format";
 import type { ExtraHour } from "@/types/extra-hours";
 
 export function ExtraHourCard({ extra }: { extra: ExtraHour }) {
   const { projectsById } = useProjects();
+  const { openEdit, openClose, openDelete } = useExtrasPage();
+  const toast = useToast();
+  const [pending, startReopen] = useTransition();
   const open = extra.end_time === null;
   const project = projectsById[extra.project_id];
+
+  function reopen() {
+    startReopen(async () => {
+      const result = await reopenExtraHourAction(extra.id);
+      if (result.error) toast.error(result.error);
+      else toast.success("Hora extra reaberta");
+    });
+  }
 
   return (
     <Card
@@ -25,11 +48,27 @@ export function ExtraHourCard({ extra }: { extra: ExtraHour }) {
             {project?.project_name ?? "Projeto removido"}
           </p>
         </div>
-        {open && (
-          <span className="shrink-0 rounded-full bg-success px-2 py-0.5 text-[10px] font-semibold text-success-fg">
-            Em aberto
-          </span>
-        )}
+        <div className="flex shrink-0 items-center">
+          {open && (
+            <span className="mr-1 rounded-full bg-success px-2 py-0.5 text-[10px] font-semibold text-success-fg">
+              Em aberto
+            </span>
+          )}
+          <Button
+            variant="icon"
+            aria-label="Editar hora extra"
+            onClick={() => openEdit(extra)}
+          >
+            <Pencil size={14} />
+          </Button>
+          <Button
+            variant="icon"
+            aria-label="Excluir hora extra"
+            onClick={() => openDelete(extra)}
+          >
+            <Trash2 size={14} />
+          </Button>
+        </div>
       </div>
 
       <dl className="grid grid-cols-2 gap-3">
@@ -60,6 +99,18 @@ export function ExtraHourCard({ extra }: { extra: ExtraHour }) {
           <ExternalLink size={12} className="shrink-0" />
           <span className="truncate">{extra.card_link}</span>
         </a>
+      )}
+
+      {open ? (
+        <Button variant="success" onClick={() => openClose(extra)}>
+          <CircleCheck size={14} />
+          Fechar
+        </Button>
+      ) : (
+        <Button variant="ghost" onClick={reopen} disabled={pending}>
+          <RotateCcw size={14} />
+          {pending ? "Reabrindo..." : "Reabrir"}
+        </Button>
       )}
     </Card>
   );

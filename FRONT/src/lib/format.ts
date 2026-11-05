@@ -36,6 +36,10 @@ export function timestampDateKey(iso: string) {
   return dateKeyFormat.format(new Date(iso));
 }
 
+export function todayKey() {
+  return dateKeyFormat.format(new Date());
+}
+
 export function currentMonthKey() {
   return dateKeyFormat.format(new Date()).slice(0, 7);
 }
