@@ -10,6 +10,7 @@ import { timestampDateKey } from "@/lib/format";
 import { DeleteProjectModal } from "./delete-project-modal";
 import { ProjectCard } from "./project-card";
 import { ProjectFormModal } from "./project-form-modal";
+import { RecalculateModal } from "./recalculate-modal";
 
 export function ProjectsView() {
   const { projects } = useProjects();
@@ -89,6 +90,7 @@ export function ProjectsView() {
 
       <ProjectFormModal />
       <DeleteProjectModal />
+      <RecalculateModal />
     </div>
   );
 }

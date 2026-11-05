@@ -14,6 +14,7 @@ export type ProjectFilters = { name: string; hourly: string; date: string };
 type Dialog =
   | { kind: "form"; project: Project | null }
   | { kind: "delete"; project: Project }
+  | { kind: "recalculate"; project: Project }
   | null;
 
 type ProjectsPageContextValue = {
@@ -24,6 +25,7 @@ type ProjectsPageContextValue = {
   openCreate: () => void;
   openEdit: (project: Project) => void;
   openDelete: (project: Project) => void;
+  openRecalculate: (project: Project) => void;
   closeDialog: () => void;
 };
 
@@ -46,6 +48,7 @@ export function ProjectsPageProvider({ children }: { children: ReactNode }) {
       openCreate: () => setDialog({ kind: "form", project: null }),
       openEdit: (project) => setDialog({ kind: "form", project }),
       openDelete: (project) => setDialog({ kind: "delete", project }),
+      openRecalculate: (project) => setDialog({ kind: "recalculate", project }),
       closeDialog: () => setDialog(null),
     }),
     [filters, dialog],

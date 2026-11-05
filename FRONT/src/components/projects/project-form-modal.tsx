@@ -9,7 +9,7 @@ import { useProjectsPage } from "@/contexts/projects-page-context";
 import { useToast } from "@/contexts/toast-context";
 
 export function ProjectFormModal() {
-  const { dialog, closeDialog } = useProjectsPage();
+  const { dialog, closeDialog, openRecalculate } = useProjectsPage();
   const toast = useToast();
   const [pending, startSave] = useTransition();
   const [error, setError] = useState<string>();
@@ -31,6 +31,17 @@ export function ProjectFormModal() {
       });
       if (result.error) return setError(result.error);
       toast.success(project ? "Projeto atualizado" : "Projeto criado");
+
+      const hourly = Number(formData.get("hourly_value"));
+      if (project && hourly !== project.hourly_value) {
+        setError(undefined);
+        openRecalculate({
+          ...project,
+          project_name: String(formData.get("project_name")).trim(),
+          hourly_value: hourly,
+        });
+        return;
+      }
       close();
     });
   }
@@ -38,7 +49,7 @@ export function ProjectFormModal() {
   return (
     <Modal
       open={open}
-      onClose={close}
+      onClose={() => open && close()}
       title={project ? "Editar projeto" : "Novo projeto"}
     >
       <form action={submit} className="grid gap-4">
