@@ -10,12 +10,12 @@ export type ExtraHourBody = {
   card_link?: string | null;
 };
 
-function toApiDate(date: string) {
+export function toApiDate(date: string) {
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
 }
 
-const toApiBody = ({ date, ...rest }: ExtraHourBody) => ({
+export const toApiBody = ({ date, ...rest }: ExtraHourBody) => ({
   ...rest,
   ...(date && { date: toApiDate(date) }),
 });
