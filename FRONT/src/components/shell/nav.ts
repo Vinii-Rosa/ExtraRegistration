@@ -1,4 +1,4 @@
-import { Clock, FolderKanban, Settings, type LucideIcon } from "lucide-react";
+import { Clock, FolderKanban, type LucideIcon } from "lucide-react";
 
 export type NavItem = { href: string; label: string; icon: LucideIcon };
 export type NavSection = { title: string; items: NavItem[] };
@@ -10,10 +10,6 @@ export const navSections: NavSection[] = [
       { href: "/extras", label: "Extras", icon: Clock },
       { href: "/projetos", label: "Projetos", icon: FolderKanban },
     ],
-  },
-  {
-    title: "Configuração",
-    items: [{ href: "/configuracoes", label: "Configurações", icon: Settings }],
   },
 ];
 

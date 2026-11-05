@@ -9,6 +9,7 @@ import {
   useTransition,
   type ReactNode,
 } from "react";
+import { DEFAULT_LIMIT } from "@/lib/extras-query";
 import type { ExtraHour } from "@/types/extra-hours";
 
 export type ExtraFilters = {
@@ -28,10 +29,12 @@ type Dialog =
 type ExtrasPageContextValue = {
   filters: ExtraFilters;
   page: number;
+  limit: number;
   pending: boolean;
   setFilter: (key: keyof ExtraFilters, value: string) => void;
   clearFilters: () => void;
   goToPage: (page: number) => void;
+  setLimit: (limit: number) => void;
   dialog: Dialog;
   openCreate: () => void;
   openEdit: (extra: ExtraHour) => void;
@@ -68,6 +71,7 @@ export function ExtrasPageProvider({ children }: { children: ReactNode }) {
         total_value: searchParams.get("total_value") ?? "",
       },
       page: Number(searchParams.get("page")) || 1,
+      limit: Number(searchParams.get("limit")) || DEFAULT_LIMIT,
       pending,
       setFilter: (key, v) => {
         const params = new URLSearchParams(searchParams);
@@ -89,6 +93,13 @@ export function ExtrasPageProvider({ children }: { children: ReactNode }) {
         const params = new URLSearchParams(searchParams);
         if (next > 1) params.set("page", String(next));
         else params.delete("page");
+        navigate(params);
+      },
+      setLimit: (next) => {
+        const params = new URLSearchParams(searchParams);
+        if (next === DEFAULT_LIMIT) params.delete("limit");
+        else params.set("limit", String(next));
+        params.delete("page");
         navigate(params);
       },
       dialog,

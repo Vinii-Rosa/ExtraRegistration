@@ -23,10 +23,11 @@ import { ExtraHourCard } from "./extra-hour-card";
 import { ExportModal } from "./export-modal";
 import { ExtraHourFormModal } from "./extra-hour-form-modal";
 
+const LIMITS = [10, 20, 50, 100];
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h));
 
 export function ExtrasView({ data }: { data: ExtraHoursPage }) {
-  const { filters, pending, setFilter, clearFilters, goToPage, openCreate, openExport } =
+  const { filters, pending, setFilter, clearFilters, goToPage, limit, setLimit, openCreate, openExport } =
     useExtrasPage();
   const [totalDraft, setTotalDraft] = useState<string | null>(null);
   const filtering = Object.values(filters).some(Boolean);
@@ -132,31 +133,51 @@ export function ExtrasView({ data }: { data: ExtraHoursPage }) {
         </div>
       )}
 
-      {data.total_pages > 1 && (
-        <nav
-          aria-label="Paginação"
-          className="flex items-center justify-center gap-4"
-        >
-          <Button
-            variant="ghost"
-            aria-label="Página anterior"
-            disabled={data.page <= 1}
-            onClick={() => goToPage(data.page - 1)}
-          >
-            <ChevronLeft size={14} />
-          </Button>
-          <span className="text-muted">
-            Página {data.page} de {data.total_pages} · {data.count} extras
-          </span>
-          <Button
-            variant="ghost"
-            aria-label="Próxima página"
-            disabled={data.page >= data.total_pages}
-            onClick={() => goToPage(data.page + 1)}
-          >
-            <ChevronRight size={14} />
-          </Button>
-        </nav>
+      {data.count > 0 && (
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="w-32">
+            <Select
+              id="filter-limit"
+              label="Por página"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+            >
+              {[...new Set([...LIMITS, limit])]
+                .sort((a, b) => a - b)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+            </Select>
+          </div>
+          {data.total_pages > 1 && (
+            <nav
+              aria-label="Paginação"
+              className="flex items-center gap-4"
+            >
+              <Button
+                variant="ghost"
+                aria-label="Página anterior"
+                disabled={data.page <= 1}
+                onClick={() => goToPage(data.page - 1)}
+              >
+                <ChevronLeft size={14} />
+              </Button>
+              <span className="text-muted">
+                Página {data.page} de {data.total_pages} · {data.count} extras
+              </span>
+              <Button
+                variant="ghost"
+                aria-label="Próxima página"
+                disabled={data.page >= data.total_pages}
+                onClick={() => goToPage(data.page + 1)}
+              >
+                <ChevronRight size={14} />
+              </Button>
+            </nav>
+          )}
+        </div>
       )}
 
       <ExtraHourFormModal />
