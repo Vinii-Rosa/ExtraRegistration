@@ -1,5 +1,5 @@
-import { api, ApiError } from "./api";
-import { REFRESH_COOKIE, readRefreshCookie, type Tokens } from "./tokens";
+import { api, ApiError } from "@/lib/api";
+import { REFRESH_COOKIE, readRefreshCookie, type Tokens } from "@/lib/tokens";
 
 const refreshCookie = (refreshToken: string) => ({
   Cookie: `${REFRESH_COOKIE}=${refreshToken}`,
@@ -28,15 +28,6 @@ export const authRoutes = {
     await api("/login/logout", {
       method: "POST",
       headers: refreshToken ? refreshCookie(refreshToken) : {},
-    });
-  },
-};
-
-export const userRoutes = {
-  async create(name: string, email: string, password: string) {
-    await api("/users/user/create", {
-      method: "POST",
-      body: { name, email, password },
     });
   },
 };

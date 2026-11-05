@@ -3,7 +3,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
-import { authRoutes, userRoutes } from "@/lib/routes";
+import { authRoutes } from "@/lib/routes/auth/login";
+import { userRoutes } from "@/lib/routes/auth/users";
 import { clearSessionCookies, setSessionCookies } from "@/lib/session";
 import { REFRESH_COOKIE } from "@/lib/tokens";
 import type { AuthFormState } from "@/types/auth";

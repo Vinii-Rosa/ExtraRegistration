@@ -6,7 +6,7 @@ import {
   isFresh,
 } from "@/lib/tokens";
 import { ApiError } from "@/lib/api";
-import { authRoutes } from "@/lib/routes";
+import { authRoutes } from "@/lib/routes/auth/login";
 
 const PUBLIC_PATHS = ["/login", "/cadastro"];
 
