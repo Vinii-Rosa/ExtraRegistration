@@ -8,9 +8,9 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "start": "node --env-file=.env dist/serve.js",
-    "start:dev": "nodemon --exec \"node --env-file=.env --import tsx\" serve.ts",
-    "migrate": "node --env-file=.env --import tsx scripts/migrate.ts",
+    "start": "node --env-file-if-exists=.env dist/serve.js",
+    "start:dev": "nodemon --exec \"node --env-file-if-exists=.env --import tsx\" serve.ts",
+    "migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
     "api_up": "./api_up.sh",
     "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "test:w": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --watch"
