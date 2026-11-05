@@ -35,3 +35,16 @@ export function formatTimestamp(iso: string) {
 export function timestampDateKey(iso: string) {
   return dateKeyFormat.format(new Date(iso));
 }
+
+export function currentMonthKey() {
+  return dateKeyFormat.format(new Date()).slice(0, 7);
+}
+
+export function formatMonth(month: string) {
+  const [year, m] = month.split("-");
+  const name = new Date(Number(year), Number(m) - 1, 1).toLocaleDateString(
+    "pt-BR",
+    { month: "long" },
+  );
+  return `${name} de ${year}`;
+}
