@@ -91,6 +91,15 @@ body {
     color 300ms ease;
 }
 
+/* Tailwind 4 não põe cursor de mão nos botões */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 ::selection {
   background: var(--sel-bg);
   color: var(--sel-fg);
