@@ -14,16 +14,15 @@ export async function syncTotals(user_id: string, project_ids: string | string[]
   for (const month of new Set([months].flat())) {
     const start = moment(month, 'YYYY-MM', true).startOf('month').format('YYYY-MM-DD');
     const end = moment(month, 'YYYY-MM', true).add(1, 'month').startOf('month').format('YYYY-MM-DD');
-    const total = (await ExtraHours.sum('total_value', {
-      where: { user_id, date: { [Op.gte]: start, [Op.lt]: end } },
-      transaction,
-    })) || 0;
+    const where = { user_id, date: { [Op.gte]: start, [Op.lt]: end } };
+    const total = (await ExtraHours.sum('total_value', { where, transaction })) || 0;
+    const total_minutes = (await ExtraHours.sum('total_minutes', { where, transaction })) || 0;
 
     const monthly = await MonthlyTotals.findOne({ where: { user_id, month }, attributes: ['id'], transaction });
     if (monthly) {
-      await MonthlyTotals.update({ total }, { where: { id: monthly.get('id') as string }, transaction });
+      await MonthlyTotals.update({ total, total_minutes }, { where: { id: monthly.get('id') as string }, transaction });
     } else {
-      await MonthlyTotals.create({ user_id, month, total }, { transaction });
+      await MonthlyTotals.create({ user_id, month, total, total_minutes }, { transaction });
     }
   }
 }

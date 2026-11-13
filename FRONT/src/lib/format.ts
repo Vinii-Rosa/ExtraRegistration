@@ -21,6 +21,13 @@ export function formatDate(date: string) {
   return `${day}/${month}/${year}`;
 }
 
+// 150 -> "2h30". Sem Date: o total do mês passa de 24h
+export function formatMinutes(minutes: number | null) {
+  if (minutes === null) return "Em aberto";
+  const rest = String(minutes % 60).padStart(2, "0");
+  return `${Math.floor(minutes / 60)}h${rest}`;
+}
+
 // "14:30:00" -> "14:30"
 export function formatTime(time: string | null) {
   return time ? time.slice(0, 5) : "Em aberto";

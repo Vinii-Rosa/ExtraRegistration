@@ -15,7 +15,12 @@ import { Card } from "@/components/ui/card";
 import { useExtrasPage } from "@/contexts/extras-page-context";
 import { useProjects } from "@/contexts/projects-context";
 import { useToast } from "@/contexts/toast-context";
-import { formatCurrency, formatDate, formatTime } from "@/lib/format";
+import {
+  formatCurrency,
+  formatDate,
+  formatMinutes,
+  formatTime,
+} from "@/lib/format";
 import type { ExtraHour } from "@/types/extra-hours";
 
 export function ExtraHourCard({ extra }: { extra: ExtraHour }) {
@@ -71,7 +76,7 @@ export function ExtraHourCard({ extra }: { extra: ExtraHour }) {
         </div>
       </div>
 
-      <dl className="grid grid-cols-2 gap-3">
+      <dl className="grid grid-cols-3 gap-3">
         <div>
           <dt className="text-[10px] text-muted uppercase">Data</dt>
           <dd className="font-semibold">{formatDate(extra.date)}</dd>
@@ -80,7 +85,11 @@ export function ExtraHourCard({ extra }: { extra: ExtraHour }) {
           <dt className="text-[10px] text-muted uppercase">Valor</dt>
           <dd className="font-semibold">{formatCurrency(extra.total_value)}</dd>
         </div>
-        <div className="col-span-2">
+        <div>
+          <dt className="text-[10px] text-muted uppercase">Duração</dt>
+          <dd className="font-semibold">{formatMinutes(extra.total_minutes)}</dd>
+        </div>
+        <div className="col-span-3">
           <dt className="text-[10px] text-muted uppercase">Horário</dt>
           <dd className="flex items-center gap-1.5 font-semibold">
             <Clock size={12} />
@@ -88,6 +97,12 @@ export function ExtraHourCard({ extra }: { extra: ExtraHour }) {
           </dd>
         </div>
       </dl>
+
+      {extra.description && (
+        <p className="line-clamp-3 whitespace-pre-line break-words text-muted">
+          {extra.description}
+        </p>
+      )}
 
       {extra.card_link && (
         <a

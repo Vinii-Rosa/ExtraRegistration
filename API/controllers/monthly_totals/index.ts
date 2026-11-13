@@ -11,7 +11,7 @@ const MonthlyTotalsController = {
 
       const monthly_totals = await MonthlyTotals.findAll({
         where: { user_id },
-        attributes: ['month', 'total'],
+        attributes: ['month', 'total', 'total_minutes'],
         order: [['month', 'DESC']],
       });
 
@@ -33,10 +33,10 @@ const MonthlyTotalsController = {
 
       const monthly_total = await MonthlyTotals.findOne({
         where: { user_id, month },
-        attributes: ['month', 'total'],
+        attributes: ['month', 'total', 'total_minutes'],
       });
 
-      return res.status(200).send({ monthly_total: monthly_total ?? { month, total: 0 } });
+      return res.status(200).send({ monthly_total: monthly_total ?? { month, total: 0, total_minutes: 0 } });
     } catch (error) {
       req.log.error({ err: error }, 'Erro ao buscar soma mensal');
       return res.status(500).send({ message: 'Erro ao buscar soma mensal', error: (error as Error).message });

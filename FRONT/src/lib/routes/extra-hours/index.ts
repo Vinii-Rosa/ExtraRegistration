@@ -8,6 +8,7 @@ export type ExtraHourBody = {
   end_time?: string | null;
   card_name?: string | null;
   card_link?: string | null;
+  description?: string | null;
 };
 
 export function toApiDate(date: string) {

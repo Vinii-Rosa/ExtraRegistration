@@ -7,7 +7,7 @@ import db from '../../db.js';
 import ExtraHours from '../../models/extra_hours.js';
 import MonthlyTotals from '../../models/monthly_totals.js';
 import Projects from '../../models/projects.js';
-import { calculateExtraValue } from '../../utils/calculate_extra_value.js';
+import { calculateExtraValue, calculateMinutes } from '../../utils/calculate_extra_value.js';
 import { syncTotals } from '../../utils/sync_totals.js';
 
 type ExtraHourBody = {
@@ -17,6 +17,7 @@ type ExtraHourBody = {
   end_time?: string | null;
   card_name?: string | null;
   card_link?: string | null;
+  description?: string | null;
 };
 type ExtraHourParams = { extra_hour_id?: string };
 type ExtraHourQuery = {
@@ -33,6 +34,7 @@ type ExportQuery = { month?: string };
 
 const extraHourAttributes = [
   'id', 'project_id', 'date', 'card_name', 'card_link', 'start_time', 'end_time', 'total_value',
+  'total_minutes', 'description',
 ];
 
 function isValidDate(date: unknown) {
@@ -56,7 +58,7 @@ const ExtraHoursController = {
     let transaction: Transaction | undefined;
     try {
       const { user_id } = req.user;
-      const { project_id, date, start_time, end_time, card_name, card_link } = req.body as ExtraHourBody;
+      const { project_id, date, start_time, end_time, card_name, card_link, description } = req.body as ExtraHourBody;
 
       if (!project_id) {
         return res.status(400).send({ message: 'Projeto não informado' });
@@ -93,6 +95,7 @@ const ExtraHoursController = {
       const total_value = end_time
         ? calculateExtraValue(start_time, end_time, project.get('hourly_value') as number)
         : null;
+      const total_minutes = end_time ? calculateMinutes(start_time, end_time) : null;
 
       transaction = await db.transaction();
 
@@ -104,7 +107,9 @@ const ExtraHoursController = {
         end_time: end_time || null,
         card_name: card_name || null,
         card_link: card_link || null,
+        description: description || null,
         total_value,
+        total_minutes,
       }, { transaction });
 
       await syncTotals(user_id, project_id, toMonth(dbDate), transaction);
@@ -232,7 +237,7 @@ const ExtraHoursController = {
     try {
       const { user_id } = req.user;
       const { extra_hour_id } = req.params as ExtraHourParams;
-      const { project_id, date, start_time, end_time, card_name, card_link } = req.body as ExtraHourBody;
+      const { project_id, date, start_time, end_time, card_name, card_link, description } = req.body as ExtraHourBody;
 
       if (project_id !== undefined && !project_id) {
         return res.status(400).send({ message: 'Projeto não informado' });
@@ -284,9 +289,11 @@ const ExtraHoursController = {
         start_time: newStart,
         end_time: newEnd || null,
         total_value: newEnd ? calculateExtraValue(newStart, newEnd, project.get('hourly_value') as number) : null,
+        total_minutes: newEnd ? calculateMinutes(newStart, newEnd) : null,
       };
       if (card_name !== undefined) updateData.card_name = card_name || null;
       if (card_link !== undefined) updateData.card_link = card_link || null;
+      if (description !== undefined) updateData.description = description || null;
 
       transaction = await db.transaction();
 
@@ -353,7 +360,7 @@ const ExtraHoursController = {
             [Op.lt]: monthMoment.clone().add(1, 'month').startOf('month').format('YYYY-MM-DD'),
           },
         },
-        attributes: ['date', 'card_name', 'card_link', 'start_time', 'end_time', 'total_value'],
+        attributes: ['date', 'card_name', 'card_link', 'description', 'start_time', 'end_time', 'total_minutes'],
         order: [['date', 'ASC'], ['start_time', 'ASC']],
       });
 
@@ -363,7 +370,7 @@ const ExtraHoursController = {
 
       const monthly_total = await MonthlyTotals.findOne({
         where: { user_id, month },
-        attributes: ['total'],
+        attributes: ['total_minutes'],
       });
 
       const workbook = new ExcelJS.Workbook();
@@ -372,26 +379,33 @@ const ExtraHoursController = {
         { header: 'Data', key: 'date', width: 14, style: { numFmt: 'DD/MM/YYYY' } },
         { header: 'Nome do card', key: 'card_name', width: 30 },
         { header: 'Link do card', key: 'card_link', width: 40, style: { alignment: { horizontal: 'fill' } } },
+        { header: 'Descrição', key: 'description', width: 40 },
         { header: 'Hora de início', key: 'start_time', width: 16 },
         { header: 'Hora de fim', key: 'end_time', width: 16 },
-        { header: 'Valor', key: 'total_value', width: 14, style: { numFmt: '"R$" #,##0' } },
+        { header: 'Horas', key: 'total_minutes', width: 10, style: { numFmt: '[h]:mm' } },
       ];
       sheet.getRow(1).font = { bold: true };
 
       for (const extra_hour of extra_hours) {
         const card_link = extra_hour.get('card_link') as string | null;
         const end_time = extra_hour.get('end_time') as string | null;
+        const total_minutes = extra_hour.get('total_minutes') as number | null;
         sheet.addRow({
           date: moment.utc(extra_hour.get('date') as string, 'YYYY-MM-DD').toDate(),
           card_name: extra_hour.get('card_name') as string | null,
           card_link: card_link ? { text: card_link, hyperlink: card_link } : null,
+          description: extra_hour.get('description') as string | null,
           start_time: toTime(extra_hour.get('start_time') as string),
           end_time: end_time ? toTime(end_time) : null,
-          total_value: extra_hour.get('total_value') as number | null,
+          // Duração em dias, para o Excel exibir como [h]:mm
+          total_minutes: total_minutes === null ? null : total_minutes / 1440,
         });
       }
 
-      const totalRow = sheet.addRow({ date: 'Total do mês', total_value: monthly_total ? (monthly_total.get('total') as number) : 0 });
+      const totalRow = sheet.addRow({
+        date: 'Total do mês',
+        total_minutes: monthly_total ? (monthly_total.get('total_minutes') as number) / 1440 : 0,
+      });
       totalRow.font = { bold: true };
 
       const buffer = await workbook.xlsx.writeBuffer();

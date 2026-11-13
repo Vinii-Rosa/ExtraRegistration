@@ -34,11 +34,15 @@ async function Extras({
     getExtraHours(token, userId, query),
     getMonthlyTotals(token, userId),
   ]);
-  const total = totals.find((t) => t.month === month)?.total ?? 0;
+  const monthTotal = totals.find((t) => t.month === month);
 
   return (
     <div className="flex flex-1 flex-col gap-6 md:min-h-0">
-      <MonthTotalStrip month={month} total={total} />
+      <MonthTotalStrip
+        month={month}
+        total={monthTotal?.total ?? 0}
+        minutes={monthTotal?.total_minutes ?? 0}
+      />
       <ExtrasPageProvider>
         <ExtrasView data={data} />
       </ExtrasPageProvider>
