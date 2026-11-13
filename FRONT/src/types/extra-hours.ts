@@ -7,6 +7,8 @@ export type ExtraHour = {
   start_time: string;
   end_time: string | null;
   total_value: number | null;
+  total_minutes: number | null;
+  description: string | null;
 };
 
 export type ExtraHoursPage = {
@@ -27,7 +29,11 @@ export type ExtraHoursQuery = {
   total_value?: string;
 };
 
-export type MonthlyTotal = { month: string; total: number };
+export type MonthlyTotal = {
+  month: string;
+  total: number;
+  total_minutes: number;
+};
 
 export type ExtraHourInput = {
   id?: string;
@@ -37,4 +43,5 @@ export type ExtraHourInput = {
   end_time: string;
   card_name: string;
   card_link: string;
+  description: string;
 };

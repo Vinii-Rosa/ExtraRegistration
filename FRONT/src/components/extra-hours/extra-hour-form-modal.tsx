@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useExtrasPage } from "@/contexts/extras-page-context";
 import { useProjects } from "@/contexts/projects-context";
 import { useToast } from "@/contexts/toast-context";
@@ -37,6 +38,7 @@ export function ExtraHourFormModal() {
         end_time: field("end_time"),
         card_name: field("card_name"),
         card_link: field("card_link"),
+        description: field("description"),
       });
       if (result.error) return setError(result.error);
       toast.success(extra ? "Hora extra atualizada" : "Hora extra criada");
@@ -106,6 +108,13 @@ export function ExtraHourFormModal() {
           type="url"
           defaultValue={extra?.card_link ?? ""}
           autoComplete="off"
+        />
+        <Textarea
+          id="description"
+          name="description"
+          label="Descrição (opcional)"
+          rows={3}
+          defaultValue={extra?.description ?? ""}
         />
         {error && (
           <p role="alert" className="text-[10px] text-danger">

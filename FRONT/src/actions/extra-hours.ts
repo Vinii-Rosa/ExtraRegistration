@@ -40,6 +40,7 @@ export async function saveExtraHourAction(
     end_time: input.end_time || null,
     card_name: input.card_name.trim() || null,
     card_link: input.card_link.trim() || null,
+    description: input.description.trim() || null,
   };
 
   return write(async (token) => {
