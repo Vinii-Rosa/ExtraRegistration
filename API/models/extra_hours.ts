@@ -49,6 +49,14 @@ const extra_hours = db.define('extra_hours', {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  total_minutes: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 }) as ModelWithAssociate;
 
 extra_hours.associate = function (models: Models) {

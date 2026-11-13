@@ -26,6 +26,11 @@ const monthly_totals = db.define('monthly_totals', {
     allowNull: false,
     defaultValue: 0,
   },
+  total_minutes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
 }) as ModelWithAssociate;
 
 monthly_totals.associate = function (models: Models) {
