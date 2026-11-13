@@ -37,6 +37,8 @@ describe('ExtraHoursController', () => {
     expect(extra.card_link).toBe('https://x.com/a');
     expect(extra.end_time).toBeNull();
     expect(extra.total_value).toBeNull();
+    expect(extra.total_minutes).toBeNull();
+    expect(extra.description).toBeNull();
     expect(await projectProfit(project.id)).toBe(0);
     expect(await monthTotal('2026-11')).toBe(0);
   });
@@ -47,6 +49,7 @@ describe('ExtraHoursController', () => {
 
     const extra = await findExtra(project.id, '04/12/2026', '18:00');
     expect(extra.total_value).toBe(120);
+    expect(extra.total_minutes).toBe(120);
     expect(await projectProfit(project.id)).toBe(120);
     expect(await monthTotal('2026-12')).toBe(120);
   });
@@ -65,15 +68,39 @@ describe('ExtraHoursController', () => {
 
     const updated = await findExtra(project.id, '05/01/2027', '18:00');
     expect(updated.total_value).toBe(120);
+    expect(updated.total_minutes).toBe(120);
     expect(await projectProfit(project.id)).toBe(120);
     expect(await monthTotal('2027-01')).toBe(120);
+  });
+
+  test('Descrição é gravada, alterada e limpa', async () => {
+    const project = await createProject('Extra Descrição', 60);
+    await createExtra({ project_id: project.id, date: '15/02/2027', start_time: '18:00', end_time: '19:00', description: 'Ajuste no login' });
+
+    const extra = await findExtra(project.id, '15/02/2027', '18:00');
+    expect(extra.description).toBe('Ajuste no login');
+
+    async function update(body: Record<string, any>) {
+      await callAssertSuccess(ExtraHoursController.updateExtraHour, {
+        ...defaultReq,
+        params: { extra_hour_id: extra.id },
+        body,
+      }, 200);
+      return (await findExtra(project.id, '15/02/2027', '18:00')).description;
+    }
+
+    expect(await update({ description: 'Correção no deploy' })).toBe('Correção no deploy');
+    expect(await update({ end_time: '19:30' })).toBe('Correção no deploy');
+    expect(await update({ description: '' })).toBeNull();
   });
 
   test('Virada de dia conta no mês do campo date', async () => {
     const project = await createProject('Extra Virada', 60);
     await createExtra({ project_id: project.id, date: '31/03/2027', start_time: '23:00', end_time: '01:00' });
 
-    expect((await findExtra(project.id, '31/03/2027', '23:00')).total_value).toBe(120);
+    const extra = await findExtra(project.id, '31/03/2027', '23:00');
+    expect(extra.total_value).toBe(120);
+    expect(extra.total_minutes).toBe(120);
     expect(await monthTotal('2027-03')).toBe(120);
     expect(await monthTotal('2027-04')).toBeNull();
   });
@@ -159,6 +186,7 @@ describe('ExtraHoursController', () => {
     }, 200);
     expect(body.extra_hour.card_name).toBe('Busca');
     expect(body.extra_hour.total_value).toBe(60);
+    expect(body.extra_hour.total_minutes).toBe(60);
   });
 
   test('Erro 404 ao buscar, atualizar ou excluir hora extra inexistente', async () => {

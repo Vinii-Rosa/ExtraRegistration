@@ -22,6 +22,8 @@ describe('MonthlyTotalsController', () => {
     expect(months.indexOf('2026-06')).toBeLessThan(months.indexOf('2026-05'));
     expect(body.monthly_totals.find((item: any) => item.month === '2026-05').total).toBe(120);
     expect(body.monthly_totals.find((item: any) => item.month === '2026-06').total).toBe(60);
+    expect(body.monthly_totals.find((item: any) => item.month === '2026-05').total_minutes).toBe(120);
+    expect(body.monthly_totals.find((item: any) => item.month === '2026-06').total_minutes).toBe(60);
   });
 
   test('Buscando a soma de um mês', async () => {
@@ -34,6 +36,42 @@ describe('MonthlyTotalsController', () => {
     }, 200);
     expect(body.monthly_total.month).toBe('2026-07');
     expect(body.monthly_total.total).toBe(150);
+    expect(body.monthly_total.total_minutes).toBe(150);
+  });
+
+  test('Total de minutos acompanha update e delete das horas extras', async () => {
+    const project = await createProject('Projeto Soma Minutos', 60);
+    await createClosedExtra(project.id, '03/09/2026', '18:00', '20:00');
+    await createClosedExtra(project.id, '04/09/2026', '18:00', '19:00');
+
+    async function totalMinutes() {
+      const body = await callAssertSuccess(MonthlyTotalsController.getMonthlyTotal, {
+        ...defaultReq,
+        params: { month: '2026-09' },
+      }, 200);
+      return body.monthly_total.total_minutes;
+    }
+
+    expect(await totalMinutes()).toBe(180);
+
+    const { extra_hours } = await callAssertSuccess(ExtraHoursController.getExtraHours, {
+      ...defaultReq,
+      query: { month: '2026-09' },
+    }, 200);
+    const [last, first] = extra_hours;
+
+    await callAssertSuccess(ExtraHoursController.updateExtraHour, {
+      ...defaultReq,
+      params: { extra_hour_id: first.id },
+      body: { end_time: '18:30' },
+    }, 200);
+    expect(await totalMinutes()).toBe(90);
+
+    await callAssertSuccess(ExtraHoursController.deleteExtraHour, {
+      ...defaultReq,
+      params: { extra_hour_id: last.id },
+    }, 200);
+    expect(await totalMinutes()).toBe(30);
   });
 
   test('Mês sem registro retorna total zero', async () => {
@@ -41,7 +79,7 @@ describe('MonthlyTotalsController', () => {
       ...defaultReq,
       params: { month: '2001-01' },
     }, 200);
-    expect(body.monthly_total).toEqual({ month: '2001-01', total: 0 });
+    expect(body.monthly_total).toEqual({ month: '2001-01', total: 0, total_minutes: 0 });
   });
 
   test('Mês inválido retorna erro', async () => {

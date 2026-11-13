@@ -14,17 +14,21 @@ async function exportMonth(month: string, reqOverrides: Record<string, any> = {}
   return workbook.worksheets[0];
 }
 
+function cellMinutes(value: unknown) {
+  return Math.round(((value as Date).getTime() - Date.UTC(1899, 11, 30)) / 60000);
+}
+
 describe('ExtraHoursController - exportação', () => {
   test('Exportando o mês com colunas, linhas e total', async () => {
     const project = await createProject('Export Mes', 60);
-    await createExtra({ project_id: project.id, date: '10/03/2030', start_time: '18:00', end_time: '20:00', card_name: 'Card X', card_link: 'https://x.com/x' });
+    await createExtra({ project_id: project.id, date: '10/03/2030', start_time: '18:00', end_time: '20:00', card_name: 'Card X', card_link: 'https://x.com/x', description: 'Feito X' });
     await createExtra({ project_id: project.id, date: '11/03/2030', start_time: '19:00', end_time: '20:30' });
     await createExtra({ project_id: project.id, date: '12/03/2030', start_time: '18:00' });
     await createExtra({ project_id: project.id, date: '01/04/2030', start_time: '18:00', end_time: '19:00' });
 
     const sheet = await exportMonth('2030-03');
 
-    expect(sheet.getRow(1).values).toEqual([undefined, 'Data', 'Nome do card', 'Link do card', 'Hora de início', 'Hora de fim', 'Valor']);
+    expect(sheet.getRow(1).values).toEqual([undefined, 'Data', 'Nome do card', 'Link do card', 'Descrição', 'Hora de início', 'Hora de fim', 'Horas']);
     expect(sheet.rowCount).toBe(5);
 
     const first = sheet.getRow(2);
@@ -33,22 +37,26 @@ describe('ExtraHoursController - exportação', () => {
     expect(first.getCell(2).value).toBe('Card X');
     expect(first.getCell(3).value).toEqual({ text: 'https://x.com/x', hyperlink: 'https://x.com/x' });
     expect(first.getCell(3).alignment?.horizontal).toBe('fill');
-    expect(first.getCell(4).value).toBe('18:00');
-    expect(first.getCell(5).value).toBe('20:00');
-    expect(first.getCell(6).value).toBe(120);
-    expect(first.getCell(6).numFmt).toBe('"R$" #,##0');
+    expect(first.getCell(4).value).toBe('Feito X');
+    expect(first.getCell(5).value).toBe('18:00');
+    expect(first.getCell(6).value).toBe('20:00');
+    expect(cellMinutes(first.getCell(7).value)).toBe(120);
+    expect(first.getCell(7).numFmt).toBe('[h]:mm');
     expect(sheet.getColumn(3).width).toBe(40);
 
-    expect(sheet.getRow(3).getCell(6).value).toBe(90);
+    const second = sheet.getRow(3);
+    expect(second.getCell(4).value).toBeNull();
+    expect(cellMinutes(second.getCell(7).value)).toBe(90);
 
     const open = sheet.getRow(4);
-    expect(open.getCell(4).value).toBe('18:00');
-    expect(open.getCell(5).value).toBeNull();
+    expect(open.getCell(5).value).toBe('18:00');
     expect(open.getCell(6).value).toBeNull();
+    expect(open.getCell(7).value).toBeNull();
 
     const total = sheet.getRow(5);
     expect(total.getCell(1).value).toBe('Total do mês');
-    expect(total.getCell(6).value).toBe(210);
+    expect(cellMinutes(total.getCell(7).value)).toBe(210);
+    expect(total.getCell(7).numFmt).toBe('[h]:mm');
   });
 
   test('Exportando devolve os headers do arquivo', async () => {
